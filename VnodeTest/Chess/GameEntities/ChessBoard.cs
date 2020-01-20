@@ -65,7 +65,6 @@ namespace VnodeTest.Chess.GameEntities
             if (!start.GetValidMovements(this).Contains(target))
                 return false;
 
-            //TODO: maybe to actionsafter movesuccess?
             if (this[target] != null || start is Pawn)
                 game.HalfMoveCounter = 0;
             else
@@ -84,15 +83,16 @@ namespace VnodeTest.Chess.GameEntities
                 {
                     //direction hack => target either left or right rook
                     int direction = 1;
-                    if (start.Position > target)
+                    if (start.Position.X > target.X)
                         direction *= -1;
-                    //moving king&rook
                     var startPosition = start.Position;
+                    //moving king
                     MovePiece(start, start.Position.X + 2 * direction, game);
+                    //moving rook depending on queenside or kingside castle
                     if (direction > 0)
-                        MovePieceInternal(Board[3 * direction + startPosition], startPosition + direction);
+                        MovePieceInternal(this[(startPosition.X + 3 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
                     else
-                        MovePieceInternal(Board[4 * direction + startPosition], startPosition + direction);
+                        MovePieceInternal(this[(startPosition.X + 4 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
                     chessBoard = this.Copy();
                     return true;
                 }
@@ -103,25 +103,26 @@ namespace VnodeTest.Chess.GameEntities
 
         public void MovePieceInternal(Piece start, (int X, int Y) target)
         {
-            Board[target] = start.Copy();
-            Board[start.Position] = null;
-            Board[target].Position = target;
+            this[target] = start.Copy();
+            this[start.Position] = null;
+            this[target].Position = target;
         }
 
         private void MovePiece(Piece start, (int X, int Y) target, Game game = null, (bool, bool) engineControlled = default)
         {
+            //enpassant check 
             if (start is Pawn)
             {
                 var enPassant = EnPassantTarget;
-                EnPassantTarget = -1;
+                EnPassantTarget = (-1, -1);
                 if (target == enPassant)
                     Board[game.Lastmove.target] = null;
-                else if (Math.Abs(start.PositionXY.Y - ConvertTo2D(target).Y) == 2)
-                    EnPassantTarget = start.PositionXY.X + (start.Color == PieceColor.Black ? (start.PositionXY.Y + 1) * 8 : (start.PositionXY.Y - 1) * 8);
+                else if (Math.Abs(start.Position.Y - target.Y) == 2)
+                    EnPassantTarget = (start.Position.X, start.Color == PieceColor.Black ? start.Position.Y + 1 : start.Position.Y - 1);
             }
             game.Lastmove = (start.Copy(), target);
             MovePieceInternal(start, target);
-            game.ActionsAfterMoveSuccess(this.Copy().Board[target], game, engineControlled);
+            game.ActionsAfterMoveSuccess(this.Copy()[target], game, engineControlled);
         }
 
     }
