@@ -16,7 +16,7 @@ namespace VnodeTest
     {
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
-
+        //TODO: hasopenspots needs to be accessable for the clokcs, maybe need chessprojection here?
         //TODO: move to gameentry
         //public bool HasBlackPlayer { get; set; }
         //public bool GameWasFullOnce;
@@ -202,7 +202,7 @@ namespace VnodeTest
 
         private void TryEnablePromotion(Piece piece, (bool W, bool B) engineControlled = default)
         {
-            if (piece is Pawn && (piece.Position > 55 || piece.Position < 7))
+            if (piece is Pawn && (piece.Position.Y == 7 || piece.Position.Y == 0))
             {
                 if ((CurrentPlayerColor == PieceColor.White && !engineControlled.W) || (CurrentPlayerColor == PieceColor.Black && !engineControlled.B))
                     IsPromotable = true;
@@ -227,6 +227,40 @@ namespace VnodeTest
                 return true;
             }
             return ChessBoard.CheckMateDetection(ChessBoard, CurrentPlayerColor);
+        }
+
+        public PieceColor InverseColor()
+        {
+            if (CurrentPlayerColor == PieceColor.White)
+                return PieceColor.Black;
+            else return PieceColor.White;
+        }
+
+        private readonly object UpdateClockLock = new object();
+
+        public void UpdateClocks() => UpdateClocks(false);
+
+        public void UpdateClocks(bool changeCurrentPlayer)
+        {
+            lock (UpdateClockLock)
+            {
+                var now = DateTime.Now;
+                void updateColor(PieceColor color, ref TimeSpan clock)
+                {
+                    if (CurrentPlayerColor != color)
+                        return;
+                    if (!HasOpenSpots)
+                        clock -= now - LastClockUpdate;
+                    if (clock <= TimeSpan.Zero)
+                        Winner = color;
+                }
+
+                updateColor(PieceColor.Black, ref _BlackClock);
+                updateColor(PieceColor.White, ref _WhiteClock);
+                LastClockUpdate = now;
+                if (changeCurrentPlayer)
+                    CurrentPlayerColor = InverseColor();
+            }
         }
     }
 }
