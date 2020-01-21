@@ -11,9 +11,9 @@ namespace VnodeTest.GameEntities
     class Pawn : Piece
     {
 
-        public Pawn((int X, int Y) position, PieceColor color) : base(position, color)
+        public Pawn((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, sprite, startposition, hasmoved)
         {
-            Value = PieceValue.Pawn;
         }
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
@@ -34,6 +34,6 @@ namespace VnodeTest.GameEntities
             }
         }
 
-        public override Piece Copy() => new Pawn(Position, Color);
+        //public override Piece Copy() => new Pawn(Position, Color);
     }
 }

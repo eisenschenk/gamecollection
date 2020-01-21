@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.Chess;
 using VnodeTest.Chess.GameEntities;
-using static VnodeTest.Chess.Enums;
 
 namespace VnodeTest.GameEntities
 {
     class Rook : Piece
     {
-        public Rook((int X, int Y) position, PieceColor color) : base(position, color)
+        public Rook((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, sprite, startposition, hasmoved)
         {
-            Value = PieceValue.Rook;
         }
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
@@ -20,6 +20,6 @@ namespace VnodeTest.GameEntities
             return GetStraightLines(gameboard);
         }
 
-        public override Piece Copy() => new Rook(Position, Color);
+        //public override Piece Copy() => new Rook(Position, Color);
     }
 }

@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.Chess;
 using VnodeTest.Chess.GameEntities;
-using static VnodeTest.Chess.Enums;
 
 namespace VnodeTest.GameEntities
 {
     class King : Piece
     {
-        public King((int X, int Y) position, PieceColor color) : base(position, color)
+        public King((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, sprite, startposition, hasmoved)
         {
-            Value = PieceValue.King;
         }
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
@@ -42,7 +42,8 @@ namespace VnodeTest.GameEntities
                 }
                 //checking if king is in check while doing the castling
                 if (gameboard.CheckDetection(Color)
-                    || HypotheticalMove(gameboard, Position.X + direction).CheckDetection(Color) || HypotheticalMove(gameboard, Position.X + 2 * direction).CheckDetection(Color))
+                    || HypotheticalMove(gameboard, (Position.X + direction, Position.Y)).CheckDetection(Color) 
+                    || HypotheticalMove(gameboard, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
                     return false;
                 return true;
             }
@@ -60,6 +61,6 @@ namespace VnodeTest.GameEntities
             }
         }
 
-        public override BasePiece Copy() => new King(Position, Color);
+        //public override BasePiece Copy() => new King(Position, Color);
     }
 }

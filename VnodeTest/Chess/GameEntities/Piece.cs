@@ -11,29 +11,20 @@ namespace VnodeTest.Chess.GameEntities
     {
         public PieceColor Color { get; }
         public PieceValue Value { get; }
-        public string Sprite => GetSprite();
+        public string Sprite { get; }//=> GetSprite();
         public (int X, int Y) StartPosition { get; } //von color abh. 
         public bool HasMoved { get; }
-        private (int X, int Y) _Position;
-        public (int X, int Y) Position
-        {
-            get
-            {
-                return _Position;
-            }
-            set
-            {
-                if (_Position != StartPosition)
-                    HasMoved = true;
-                _Position = value;
-            }
-        }
+        public (int X, int Y) Position { get; }
 
-        public Piece((int X, int Y) position, PieceColor color)
+
+        public Piece((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
         {
             Position = position;
-            StartPosition = position;
+            StartPosition = startposition;
             Color = color;
+            Value = pieceValue;
+            Sprite = sprite;
+            HasMoved = hasmoved;
         }
 
         public IEnumerable<(int X, int Y)> GetDiagonals(ChessBoard chessboard, int distance = 7)
@@ -77,16 +68,16 @@ namespace VnodeTest.Chess.GameEntities
             }
         }
 
-        private string GetSprite()
+        private static string GetSprite(PieceColor color, PieceValue value)
         {
-            return Value switch
+            return value switch
             {
-                PieceValue.King => Color == PieceColor.White ? "\u2654" : "\u265A",
-                PieceValue.Queen => Color == PieceColor.White ? "\u2655" : "\u265B",
-                PieceValue.Rook => Color == PieceColor.White ? "\u2656" : "\u265C",
-                PieceValue.Bishop => Color == PieceColor.White ? "\u2657" : "\u265D",
-                PieceValue.Knight => Color == PieceColor.White ? "\u2658" : "\u265E",
-                PieceValue.Pawn => Color == PieceColor.White ? "\u2659" : "\u265F",
+                PieceValue.King => color == PieceColor.White ? "\u2654" : "\u265A",
+                PieceValue.Queen => color == PieceColor.White ? "\u2655" : "\u265B",
+                PieceValue.Rook => color == PieceColor.White ? "\u2656" : "\u265C",
+                PieceValue.Bishop => color == PieceColor.White ? "\u2657" : "\u265D",
+                PieceValue.Knight => color == PieceColor.White ? "\u2658" : "\u265E",
+                PieceValue.Pawn => color == PieceColor.White ? "\u2659" : "\u265F",
                 _ => ""
             };
         }
@@ -108,12 +99,13 @@ namespace VnodeTest.Chess.GameEntities
         public ChessBoard HypotheticalMove(ChessBoard gameboard, (int X, int Y) target)
         {
             //TODO: trymove only
+            //TODO: after gameboard immutable
             var futureGameBoard = gameboard.Copy();
             futureGameBoard.MovePieceInternal(this, target);
             return futureGameBoard;
         }
 
-        public abstract Piece Copy();
+       // public abstract Piece Copy();
 
         protected abstract IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard);
     }
