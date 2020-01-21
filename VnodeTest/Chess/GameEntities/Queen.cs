@@ -10,8 +10,8 @@ namespace VnodeTest.GameEntities
 {
     class Queen : Piece
     {
-        public Queen((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
-            : base(position, color, pieceValue, sprite, startposition, hasmoved)
+        public Queen((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, startposition, hasmoved)
         {
         }
 

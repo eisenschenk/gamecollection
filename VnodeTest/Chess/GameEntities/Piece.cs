@@ -17,14 +17,35 @@ namespace VnodeTest.Chess.GameEntities
         public (int X, int Y) Position { get; }
 
 
-        public Piece((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
+        public Piece((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)
         {
             Position = position;
             StartPosition = startposition;
             Color = color;
             Value = pieceValue;
-            Sprite = sprite;
             HasMoved = hasmoved;
+        }
+        public Piece(Piece piece)
+        {
+            Position = piece.Position;
+            StartPosition = piece.StartPosition;
+            Color = piece.Color;
+            Value = piece.Value;
+            Sprite = piece.Sprite;
+            HasMoved = piece.HasMoved;
+        }
+        //@phil
+        public Piece Move((int X, int Y) position)
+        {
+            return Value switch
+            {
+                PieceValue.King => new King(position, Color, Value, StartPosition, true),
+                PieceValue.Queen => new Queen(position, Color, Value, StartPosition, true),
+                PieceValue.Rook => new Rook(position, Color, Value, StartPosition, true),
+                PieceValue.Knight => new Knight(position, Color, Value, StartPosition, true),
+                PieceValue.Bishop => new Bishop(position, Color, Value, StartPosition, true),
+                PieceValue.Pawn => new Pawn(position, Color, Value, StartPosition, true)
+            };
         }
 
         public IEnumerable<(int X, int Y)> GetDiagonals(ChessBoard chessboard, int distance = 7)
@@ -68,20 +89,6 @@ namespace VnodeTest.Chess.GameEntities
             }
         }
 
-        private static string GetSprite(PieceColor color, PieceValue value)
-        {
-            return value switch
-            {
-                PieceValue.King => color == PieceColor.White ? "\u2654" : "\u265A",
-                PieceValue.Queen => color == PieceColor.White ? "\u2655" : "\u265B",
-                PieceValue.Rook => color == PieceColor.White ? "\u2656" : "\u265C",
-                PieceValue.Bishop => color == PieceColor.White ? "\u2657" : "\u265D",
-                PieceValue.Knight => color == PieceColor.White ? "\u2658" : "\u265E",
-                PieceValue.Pawn => color == PieceColor.White ? "\u2659" : "\u265F",
-                _ => ""
-            };
-        }
-
         public IEnumerable<(int X, int Y)> GetValidMovements(ChessBoard gameboard)
         {
             return GetPotentialMovements(gameboard).Where(m =>
@@ -105,7 +112,7 @@ namespace VnodeTest.Chess.GameEntities
             return futureGameBoard;
         }
 
-       // public abstract Piece Copy();
+        // public abstract Piece Copy();
 
         protected abstract IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard);
     }

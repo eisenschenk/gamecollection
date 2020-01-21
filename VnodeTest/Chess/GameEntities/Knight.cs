@@ -11,8 +11,8 @@ namespace VnodeTest.GameEntities
     //TODO:
     class Knight : Piece
     {
-        public Knight((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
-            : base(position, color, pieceValue, sprite, startposition, hasmoved)
+        public Knight((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, startposition, hasmoved)
         {
         }
 

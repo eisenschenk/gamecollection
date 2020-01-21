@@ -10,8 +10,8 @@ namespace VnodeTest.GameEntities
 {
     class Bishop : Piece
     {
-        public Bishop((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
-            : base(position, color, pieceValue, sprite, startposition, hasmoved)
+        public Bishop((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, startposition, hasmoved)
         {
         }
 
@@ -20,6 +20,6 @@ namespace VnodeTest.GameEntities
             return GetDiagonals(gameboard);
         }
 
-       // public override Piece Copy() => new Bishop(Position, Color);
+        // public override Piece Copy() => new Bishop(Position, Color);
     }
 }

@@ -10,8 +10,8 @@ namespace VnodeTest.GameEntities
 {
     class King : Piece
     {
-        public King((int X, int Y) position, PieceColor color, PieceValue pieceValue, string sprite, (int X, int Y) startposition, bool hasmoved)
-            : base(position, color, pieceValue, sprite, startposition, hasmoved)
+        public King((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)
+            : base(position, color, pieceValue, startposition, hasmoved)
         {
         }
 
@@ -42,7 +42,7 @@ namespace VnodeTest.GameEntities
                 }
                 //checking if king is in check while doing the castling
                 if (gameboard.CheckDetection(Color)
-                    || HypotheticalMove(gameboard, (Position.X + direction, Position.Y)).CheckDetection(Color) 
+                    || HypotheticalMove(gameboard, (Position.X + direction, Position.Y)).CheckDetection(Color)
                     || HypotheticalMove(gameboard, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
                     return false;
                 return true;

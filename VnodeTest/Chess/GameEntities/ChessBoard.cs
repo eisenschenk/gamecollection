@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VnodeTest.GameEntities;
-using static VnodeTest.Chess.Enums;
 
 namespace VnodeTest.Chess.GameEntities
 {
@@ -12,52 +11,56 @@ namespace VnodeTest.Chess.GameEntities
     {
         //TODO: my notaion -> AN implemented, AN -> my notation not implemented 
         //TODO: still dont like trymove...
-        public Piece[] Board { get; set; } = new Piece[64];
-        public (int X, int Y) EnPassantTarget { get; set; }
+        public ImmutableBoard Board { get; }
+        public (int X, int Y) EnPassantTarget { get; }
 
         public Piece this[(int X, int Y) position]
         {
-            get => Board[position.Y * 8 + position.X];
-            set => Board[position.Y * 8 + position.X] = value;
+            get => Board[position];
         }
 
         public ChessBoard()
         {
-            PutPiecesInStartingPosition();
+            Board = PutPiecesInStartingPosition();
         }
         //@phil
-        private ChessBoard(IEnumerable<Piece> collection, (int, int) enpassanttarget)
+        private ChessBoard(ImmutableBoard board, (int, int) enpassanttarget)
         {
-            Board = collection.ToArray();
+            Board = board;
             EnPassantTarget = enpassanttarget;
         }
 
-        private void PutPiecesInStartingPosition()
+        private ImmutableBoard PutPiecesInStartingPosition()
         {
-            for (int pawns = 0; pawns < 8; pawns++)
-                this[(pawns, 1)] = new Pawn((pawns, 1), PieceColor.Black);
-            this[(0, 0)] = new Rook((0, 0), PieceColor.Black);
-            this[(1, 0)] = new Knight((1, 0), PieceColor.Black);
-            this[(2, 0)] = new Bishop((2, 0), PieceColor.Black);
-            this[(3, 0)] = new Queen((3, 0), PieceColor.Black);
-            this[(4, 0)] = new King((4, 0), PieceColor.Black);
-            this[(5, 0)] = new Bishop((5, 0), PieceColor.Black);
-            this[(6, 0)] = new Knight((6, 0), PieceColor.Black);
-            this[(7, 0)] = new Rook((7, 0), PieceColor.Black);
-
-            for (int pawns = 0; pawns < 8; pawns++)
-                this[(pawns, 6)] = new Pawn((pawns, 6), PieceColor.White);
-            this[(0, 7)] = new Rook((0, 7), PieceColor.White);
-            this[(1, 7)] = new Knight((1, 7), PieceColor.White);
-            this[(2, 7)] = new Bishop((2, 7), PieceColor.White);
-            this[(3, 7)] = new Queen((3, 7), PieceColor.White);
-            this[(4, 7)] = new King((4, 7), PieceColor.White);
-            this[(5, 7)] = new Bishop((5, 7), PieceColor.White);
-            this[(6, 7)] = new Knight((6, 7), PieceColor.White);
-            this[(7, 7)] = new Rook((7, 7), PieceColor.White);
+            Piece[] pieces = new Piece[64];
+            //putting down black pieces
+            PutPawns(pieces, PieceColor.White, 1);
+            PutRoyalty(pieces, PieceColor.White, 0);
+            //putting down white pieces
+            PutPawns(pieces, PieceColor.Black, 6);
+            PutRoyalty(pieces, PieceColor.Black, 7);
+            return new ImmutableBoard(pieces);
+        }
+        private Piece[] PutPawns(Piece[] pieces, PieceColor color, int y)
+        {
+            for (int x = 0; x < 8; x++)
+                pieces[x + y * 8] = new Pawn((x, y), color, PieceValue.Pawn, (x, y), false);
+            return pieces;
         }
 
-        public ChessBoard Copy() => new ChessBoard(Board.ToArray(), EnPassantTarget);
+        private void PutRoyalty(Piece[] pieces, PieceColor color, int y)
+        {
+            foreach (int x in new[] { 0, 7 })
+                pieces[x + y * 8] = new Rook((x, y), color, PieceValue.Rook, (x, y), false);
+            foreach (int x in new[] { 1, 6 })
+                pieces[x + y * 8] = new Knight((x, y), color, PieceValue.Rook, (x, y), false);
+            foreach (int x in new[] { 2, 5 })
+                pieces[x + y * 8] = new Bishop((x, y), color, PieceValue.Rook, (x, y), false);
+            pieces[4 + y * 8] = new King((4, y), color, PieceValue.Rook, (4, y), false);
+            pieces[3 + y * 8] = new Queen((3, y), color, PieceValue.Rook, (3, y), false);
+        }
+
+        //public ChessBoard Copy() => new ChessBoard(Board.ToArray(), EnPassantTarget);
 
         public bool TryMove(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game, (bool, bool) engineControlled = default)
         {
@@ -90,12 +93,12 @@ namespace VnodeTest.Chess.GameEntities
                         direction *= -1;
                     var startPosition = start.Position;
                     //moving king
-                    MovePiece(start, start.Position.X + 2 * direction, game);
+                    MovePiece(start, (start.Position.X + 2 * direction, start.Position.Y), game);
                     //moving rook depending on queenside or kingside castle
                     if (direction > 0)
-                        MovePieceInternal(this[(startPosition.X + 3 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
+                        Board.Move(this[(startPosition.X + 3 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
                     else
-                        MovePieceInternal(this[(startPosition.X + 4 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
+                        Board.Move(this[(startPosition.X + 4 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
                     chessBoard = this.Copy();
                     return true;
                 }
@@ -104,14 +107,18 @@ namespace VnodeTest.Chess.GameEntities
             return false;
         }
 
-        public void MovePieceInternal(Piece start, (int X, int Y) target)
-        {
-            this[target] = start.Copy();
-            this[start.Position] = null;
-            this[target].Position = target;
-        }
+        //public ChessBoard MovePieceInternal(Piece start, (int X, int Y) target)
+        //{
+        //    Piece[] pieces = new Piece[64];
+        //    Board.CopyTo(pieces, 0);
 
-        private void MovePiece(Piece start, (int X, int Y) target, Game game = null, (bool, bool) engineControlled = default)
+        //    pieces[To1D(target)] = start.Move(target);
+        //    pieces[To1D(start.Position)] = null;
+
+        //    return new ChessBoard(pieces, EnPassantTarget);
+        //}
+
+        private void MovePiece(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game = null, (bool, bool) engineControlled = default)
         {
             //enpassant check 
             if (start is Pawn)
@@ -125,7 +132,7 @@ namespace VnodeTest.Chess.GameEntities
             }
             game.Lastmove = (start.Copy(), target);
             //actual movement of the piece
-            MovePieceInternal(start, target);
+            chessBoard = new ChessBoard(Board.Move(start, target), EnPassantTarget);
             //things that have to happen after the piece was moved
             game.ActionsAfterMoveSuccess(this.Copy()[target], game, engineControlled);
         }
@@ -229,5 +236,6 @@ namespace VnodeTest.Chess.GameEntities
             return xOut + yOut;
         }
 
+       
     }
 }
