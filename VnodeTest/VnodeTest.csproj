@@ -69,6 +69,7 @@
     <Compile Include="Chess\ChessController.cs" />
     <Compile Include="Chess\GameEntities\Game.cs" />
     <Compile Include="Chess\GameEntities\ImmutableBoard.cs" />
+    <Compile Include="Chess\GameEntities\StockfishEngine.cs" />
     <Compile Include="Chess\Gamemode.cs" />
     <Compile Include="Chess\GameEntities\Bishop.cs" />
     <Compile Include="Chess\GameEntities\ChessBoard.cs" />

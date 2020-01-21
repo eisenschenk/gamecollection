@@ -6,15 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VnodeTest.BC.Chess;
+using VnodeTest.BC.Chess.Game;
 using VnodeTest.Chess;
 
 namespace VnodeTest
 {
     public class ChessContext
     {
-        private readonly ChessProjection ChessProjection;
-        private readonly BC.Chess.Chess.Handler ChessHandler;
+        private readonly ChessgameProjection ChessProjection;
+        private readonly Chessgame.Handler ChessHandler;
 
         private readonly IRepository Repository;
 
@@ -35,9 +35,9 @@ namespace VnodeTest
             Repository = new Repository(store);
             var bus = MessageBus.Instance;
 
-            ChessProjection = new ChessProjection(store, bus);
+            ChessProjection = new ChessgameProjection(store, bus);
             ChessProjection.Init();
-            ChessHandler = new BC.Chess.Chess.Handler(Repository, bus);
+            ChessHandler = new Chessgame.Handler(Repository, bus);
         }
 
         public ChessController CreateChessController() =>

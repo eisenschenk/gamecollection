@@ -24,35 +24,26 @@ namespace VnodeTest.GameEntities
         {
             bool EmptyAndNoCheck(int direction, Piece rookTile)
             {
-                //checking value of Tile
                 if (!(rookTile is Rook) || rookTile.HasMoved)
                     return false;
-                //checking direction of castling and returns false when there are pieces blocking the castlingattempt
-                if (direction < 0)
-                {
-                    for (int index = Position.X + direction; index >= rookTile.Position.X; index--)
-                        if (gameboard.Board[index] != null)
-                            return false;
-                }
-                else
-                {
-                    for (int index = Position.X + direction; index <= rookTile.Position.X; index++)
-                        if (gameboard.Board[index] != null)
-                            return false;
-                }
+                //checking direction of castling and returns false when there are pieces blocking the castling attempt
+                for (int index = Position.X + direction; index == rookTile.Position.X; index += direction)
+                    if (gameboard.Board[(index, Position.Y)] != null)
+                        return false;
+
                 //checking if king is in check while doing the castling
                 if (gameboard.CheckDetection(Color)
-                    || HypotheticalMove(gameboard, (Position.X + direction, Position.Y)).CheckDetection(Color)
-                    || HypotheticalMove(gameboard, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
+                    || gameboard.HypotheticalMove(gameboard, this, (Position.X + direction, Position.Y)).CheckDetection(Color)
+                    || gameboard.HypotheticalMove(gameboard, this, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
                     return false;
                 return true;
             }
-            //hardcoded starting postions of both kings
+            //hardcoded starting positions of both kings
             if (!HasMoved && (Position == (4, 0) || Position == (4, 7)))
             {
 
-                var rookTileLeft = gameboard.Board[Position.X - 4];
-                var rookTileRight = gameboard.Board[Position.X + 3];
+                var rookTileLeft = gameboard.Board[(Position.X - 4, Position.Y)];
+                var rookTileRight = gameboard.Board[(Position.X + 3, Position.Y)];
                 //returning potential valid castling moves
                 if (rookTileLeft != default && EmptyAndNoCheck(-1, rookTileLeft))
                     yield return (Position.X - 2, Position.Y);
