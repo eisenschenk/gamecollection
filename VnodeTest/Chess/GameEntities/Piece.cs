@@ -93,7 +93,7 @@ namespace VnodeTest.Chess.GameEntities
         {
             return GetPotentialMovements(gameboard).Where(m =>
             {
-                var hypotheticalGameBoard = HypotheticalMove(gameboard, m);
+                var hypotheticalGameBoard = gameboard.HypotheticalMove(gameboard, this, m);
                 var kingSameColorPosition = hypotheticalGameBoard.Board
                     .Where(t => t != null && t.Color == Color && t is King)
                     .Single().Position;
@@ -103,14 +103,7 @@ namespace VnodeTest.Chess.GameEntities
             });
         }
 
-        public ChessBoard HypotheticalMove(ChessBoard gameboard, (int X, int Y) target)
-        {
-            //TODO: trymove only
-            //TODO: after gameboard immutable
-            var futureGameBoard = gameboard.Copy();
-            futureGameBoard.MovePieceInternal(this, target);
-            return futureGameBoard;
-        }
+
 
         // public abstract Piece Copy();
 

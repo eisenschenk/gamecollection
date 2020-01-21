@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VnodeTest.BC.Chess
+namespace VnodeTest.BC.Chess.Game
 {
-    public class ChessProjection : Projection
+    public class ChessgameProjection : Projection
     {
-        public ChessProjection(IEventStore store, IMessageBus bus) : base(store, bus)
+        public ChessgameProjection(IEventStore store, IMessageBus bus) : base(store, bus)
         {
         }
 
@@ -18,5 +18,9 @@ namespace VnodeTest.BC.Chess
         //{
         //    action
         //}
+    }
+
+    public class GameEntry
+    {
     }
 }

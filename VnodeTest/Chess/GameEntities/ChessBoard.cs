@@ -24,7 +24,7 @@ namespace VnodeTest.Chess.GameEntities
             Board = PutPiecesInStartingPosition();
         }
         //@phil
-        private ChessBoard(ImmutableBoard board, (int, int) enpassanttarget)
+        public ChessBoard(ImmutableBoard board, (int, int) enpassanttarget)
         {
             Board = board;
             EnPassantTarget = enpassanttarget;
@@ -60,8 +60,6 @@ namespace VnodeTest.Chess.GameEntities
             pieces[3 + y * 8] = new Queen((3, y), color, PieceValue.Rook, (3, y), false);
         }
 
-        //public ChessBoard Copy() => new ChessBoard(Board.ToArray(), EnPassantTarget);
-
         public bool TryMove(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game, (bool, bool) engineControlled = default)
         {
             //trying to castle
@@ -76,8 +74,7 @@ namespace VnodeTest.Chess.GameEntities
             else
                 game.HalfMoveCounter++;
 
-            MovePiece(start, target, game, engineControlled);
-            chessBoard = this.Copy();
+            MovePiece(start, target, out chessBoard, game, engineControlled);
             return true;
         }
 
@@ -93,48 +90,44 @@ namespace VnodeTest.Chess.GameEntities
                         direction *= -1;
                     var startPosition = start.Position;
                     //moving king
-                    MovePiece(start, (start.Position.X + 2 * direction, start.Position.Y), game);
+                    MovePiece(start, (start.Position.X + 2 * direction, start.Position.Y), out chessBoard, game);
                     //moving rook depending on queenside or kingside castle
                     if (direction > 0)
-                        Board.Move(this[(startPosition.X + 3 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
+                        chessBoard = new ChessBoard
+                            (chessBoard.Board.Move(chessBoard[(startPosition.X + 3 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y)), EnPassantTarget);
                     else
-                        Board.Move(this[(startPosition.X + 4 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y));
-                    chessBoard = this.Copy();
+                        chessBoard = new ChessBoard(
+                            chessBoard.Board.Move(chessBoard[(startPosition.X + 4 * direction, startPosition.Y)], (startPosition.X + direction, startPosition.Y)), EnPassantTarget);
                     return true;
                 }
             }
-            chessBoard = this.Copy();
+            chessBoard = new ChessBoard(Board, EnPassantTarget);
             return false;
         }
-
-        //public ChessBoard MovePieceInternal(Piece start, (int X, int Y) target)
-        //{
-        //    Piece[] pieces = new Piece[64];
-        //    Board.CopyTo(pieces, 0);
-
-        //    pieces[To1D(target)] = start.Move(target);
-        //    pieces[To1D(start.Position)] = null;
-
-        //    return new ChessBoard(pieces, EnPassantTarget);
-        //}
 
         private void MovePiece(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game = null, (bool, bool) engineControlled = default)
         {
             //enpassant check 
+            var enPassant = EnPassantTarget;
+            (int X, int Y) enpassenTarget = (-1, -1);
+            chessBoard = new ChessBoard(Board, enpassenTarget);
             if (start is Pawn)
             {
-                var enPassant = EnPassantTarget;
-                EnPassantTarget = (-1, -1);
                 if (target == enPassant)
-                    Board[game.Lastmove.target] = null;
+                    chessBoard = new ChessBoard(Board.DeletePiece(game.Lastmove.target), enpassenTarget);
                 else if (Math.Abs(start.Position.Y - target.Y) == 2)
-                    EnPassantTarget = (start.Position.X, start.Color == PieceColor.Black ? start.Position.Y + 1 : start.Position.Y - 1);
+                    enpassenTarget = (start.Position.X, start.Color == PieceColor.Black ? start.Position.Y + 1 : start.Position.Y - 1);
             }
-            game.Lastmove = (start.Copy(), target);
+            game.Lastmove = (start, target);
             //actual movement of the piece
-            chessBoard = new ChessBoard(Board.Move(start, target), EnPassantTarget);
+            chessBoard = new ChessBoard(chessBoard.Board.Move(start, target), enpassenTarget);
             //things that have to happen after the piece was moved
-            game.ActionsAfterMoveSuccess(this.Copy()[target], game, engineControlled);
+            game.ActionsAfterMoveSuccess(chessBoard[target], game, engineControlled);
+        }
+
+        public ChessBoard HypotheticalMove(ChessBoard gameboard, Piece start, (int X, int Y) target)
+        {
+            return new ChessBoard(gameboard.Board.Move(start, target), gameboard.EnPassantTarget);
         }
 
         public bool CheckDetection(PieceColor color)
@@ -190,9 +183,6 @@ namespace VnodeTest.Chess.GameEntities
             string targetX = ParseIntToString(target)[0].ToString();
             string targetY = ParseIntToString(target)[1].ToString();
 
-            //game end
-
-
             return $"{pieceLetter}{source}{capturePiece}{targetX}{targetY}{promotionLetter}{check}";
         }
 
@@ -206,24 +196,13 @@ namespace VnodeTest.Chess.GameEntities
 
         private string GetCorrectSpriteAbreviation(PieceValue value, PieceColor color)
         {
-            if (color == PieceColor.White)
-                return value switch
-                {
-                    PieceValue.King => "K",
-                    PieceValue.Queen => "Q",
-                    PieceValue.Rook => "R",
-                    PieceValue.Bishop => "B",
-                    PieceValue.Knight => "N",
-                    PieceValue.Pawn => "",
-                    _ => throw new Exception("error in GetCorrectSpriteAbreviation White")
-                };
             return value switch
             {
-                PieceValue.King => "k",
-                PieceValue.Queen => "q",
-                PieceValue.Rook => "r",
-                PieceValue.Bishop => "b",
-                PieceValue.Knight => "n",
+                PieceValue.King => color == PieceColor.White ? "K" : "k",
+                PieceValue.Queen => color == PieceColor.White ? "Q" : "q",
+                PieceValue.Rook => color == PieceColor.White ? "R" : "r",
+                PieceValue.Bishop => color == PieceColor.White ? "B" : "b",
+                PieceValue.Knight => color == PieceColor.White ? "N" : "n",
                 PieceValue.Pawn => "",
                 _ => throw new Exception("error in GetCorrectSpriteAbreviation White")
             };
@@ -236,6 +215,6 @@ namespace VnodeTest.Chess.GameEntities
             return xOut + yOut;
         }
 
-       
+
     }
 }

@@ -59,15 +59,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BC\AggregateEvent.cs" />
-    <Compile Include="BC\Chess\Chess.cs" />
-    <Compile Include="BC\Chess\ChessProjection.cs" />
+    <Compile Include="BC\Chess\Game\Chessgame.cs" />
+    <Compile Include="BC\Chess\Game\ChessgameProjection.cs" />
     <Compile Include="BC\General\Account\Account.cs" />
     <Compile Include="BC\General\Account\AccountProjection.cs" />
     <Compile Include="BC\Solitaire\Solitaire.cs" />
     <Compile Include="BC\Solitaire\SolitaireProjection.cs" />
     <Compile Include="Chess\ChessContext.cs" />
     <Compile Include="Chess\ChessController.cs" />
-    <Compile Include="Chess\Game.cs" />
+    <Compile Include="Chess\GameEntities\Game.cs" />
     <Compile Include="Chess\GameEntities\ImmutableBoard.cs" />
     <Compile Include="Chess\Gamemode.cs" />
     <Compile Include="Chess\GameEntities\Bishop.cs" />
@@ -104,9 +104,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="BC\Chess\Command\" />
-    <Folder Include="BC\Chess\Event\" />
-    <Folder Include="BC\Chess\NewFolder1\" />
+    <Folder Include="BC\Chess\Game\Command\" />
+    <Folder Include="BC\Chess\Game\Event\" />
     <Folder Include="BC\General\Account\Command\" />
     <Folder Include="BC\General\Account\Event\" />
     <Folder Include="BC\General\Friendships\" />

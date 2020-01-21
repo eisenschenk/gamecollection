@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VnodeTest.BC.Chess
+namespace VnodeTest.BC.Chess.Game
 {
-    public class Chess : AggregateRoot<Chess>
+    public class Chessgame : AggregateRoot<Chessgame>
     {
-        public class Handler : AggregateCommandHandler<Chess>
+        public class Handler : AggregateCommandHandler<Chessgame>
         {
             public Handler(IRepository repository, IMessageBus bus) : base(repository, bus)
             {
