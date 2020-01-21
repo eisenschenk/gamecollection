@@ -70,18 +70,22 @@ namespace VnodeTest
 
         public void TryEngineMove(string engineMove, (bool, bool) engineControlled = default)
         {
-            var _engineMove = ParseEnginemoveToCoordinates(engineMove);
-            if (ChessBoard.TryMove(ChessBoard.Board[_engineMove.start], _engineMove.target, out var newboard, this, engineControlled))
+            //translate enginemove to tuple
+            var (start, target) = ParseEnginemoveToCoordinates(engineMove);
+            //trymove with translated enginemove
+            if (ChessBoard.TryMove(ChessBoard.Board[start], target, out var newboard, this, engineControlled))
             {
+                //checking for castles
                 if (engineMove.Length >= 5)
-                    newboard = new ChessBoard(newboard.Board.ReplacePiece(_engineMove.target, engineMove[4] switch
+                    newboard = new ChessBoard(newboard.Board.ReplacePiece(target, engineMove[4] switch
                     {
-                        'q' => new Queen(_engineMove.target, CurrentPlayerColor, PieceValue.Queen, _engineMove.target, true),
-                        'n' => new Knight(_engineMove.target, CurrentPlayerColor, PieceValue.Knight, _engineMove.target, true),
-                        'b' => new Bishop(_engineMove.target, CurrentPlayerColor, PieceValue.Bishop, _engineMove.target, true),
-                        'r' => new Rook(_engineMove.target, CurrentPlayerColor, PieceValue.Rook, _engineMove.target, true),
+                        'q' => new Queen(target, CurrentPlayerColor, PieceValue.Queen, target, true),
+                        'n' => new Knight(target, CurrentPlayerColor, PieceValue.Knight, target, true),
+                        'b' => new Bishop(target, CurrentPlayerColor, PieceValue.Bishop, target, true),
+                        'r' => new Rook(target, CurrentPlayerColor, PieceValue.Rook, target, true),
                         _ => default
                     }), ChessBoard.EnPassantTarget);
+
                 Moves.Add((newboard, Lastmove));
                 ChessBoard = newboard;
             }
@@ -123,29 +127,33 @@ namespace VnodeTest
         {
             int emptyCount = 0;
             StringBuilder stringBuilder = new StringBuilder();
-
             for (int y = 0; y < 8; y++)
                 for (int x = 0; x < 8; x++)
                 {
-                    var piece = Gameboard[x, y];
-
+                    var piece = ChessBoard[(x, y)];
+                    //checking if new line starts
                     if (x == 0 && y >= 1)
                     {
+                        //writing counter before line end, reset counter
                         if (emptyCount != 0)
                         {
                             stringBuilder.Append(emptyCount.ToString());
                             emptyCount = 0;
                         }
+                        //line ends
                         stringBuilder.Append("/");
                     }
+                    //counting empty connected empty fields on the board
                     if (piece == null)
                         emptyCount++;
-
+                    //checking if piece exists
                     if (piece != null)
                     {
+                        //writing counter of connected fields before next piece, reset counter
                         if (emptyCount != 0)
                             stringBuilder.Append(emptyCount.ToString());
                         emptyCount = 0;
+                        //writing abreviation of piece, white = uppercase, black = lowercase
                         stringBuilder.Append(piece.Value switch
                         {
                             PieceValue.King => piece.Color == PieceColor.White ? "K" : "k",
@@ -158,12 +166,67 @@ namespace VnodeTest
                         });
                     }
                 }
+            //currently active playercolor
             stringBuilder.Append(CurrentPlayerColor == PieceColor.White ? " w " : " b ");
+            //all possible castles
             stringBuilder.Append(GetPossibleCastles());
-            stringBuilder.Append(Gameboard.EnPassantTarget == -1 ? $" {Gameboard.ParseIntToString(Gameboard.EnPassantTarget)} " : " - ");
+            //enpassanttarget
+            stringBuilder.Append(ChessBoard.EnPassantTarget == (-1, -1) ? $" {ChessBoard.ParseIntToString(ChessBoard.EnPassantTarget)} " : " - ");
             stringBuilder.Append($"{HalfMoveCounter} ");
             stringBuilder.Append($"{MoveCounter}");
+
             return stringBuilder.ToString();
+        }
+
+        private string GetPossibleCastles()
+        {
+            string CheckCastle((int X, int Y) king, (int X, int Y) rook)
+            {
+                string _output = string.Empty;
+                bool comparison = king.X == rook.X;
+                if (ChessBoard.Board[rook] != null && !ChessBoard.Board[rook].HasMoved
+                    && ChessBoard.Board[king] != null && !ChessBoard.Board[king].HasMoved)
+                    return _output + comparison switch
+                    {
+                        true => ChessBoard.Board[king].Color == PieceColor.White ? "Q" : "q",
+                        false => ChessBoard.Board[king].Color == PieceColor.White ? "K" : "k",
+                    };
+
+                return _output;
+            }
+            string output = CheckCastle((4, 7), (7, 7));
+            output += CheckCastle((4, 7), (0, 7));
+            output += CheckCastle((4, 0), (7, 0));
+            return output += CheckCastle((4, 0), (0, 0));
+        }
+
+        private void TryEnablePromotion(Piece piece, (bool W, bool B) engineControlled = default)
+        {
+            if (piece is Pawn && (piece.Position > 55 || piece.Position < 7))
+            {
+                if ((CurrentPlayerColor == PieceColor.White && !engineControlled.W) || (CurrentPlayerColor == PieceColor.Black && !engineControlled.B))
+                    IsPromotable = true;
+            }
+        }
+
+        public void ActionsAfterMoveSuccess(Piece target, Game game = null, (bool, bool) engineControlled = default)
+        {
+            TryEnablePromotion(target, engineControlled);
+            game?.UpdateClocks(changeCurrentPlayer: true);
+            if (CurrentPlayerColor == PieceColor.White)
+                MoveCounter++;
+            if (CheckForGameOver())
+                Winner = InverseColor();
+        }
+
+        public bool CheckForGameOver()
+        {
+            if (HalfMoveCounter >= 50)
+            {
+                Winner = PieceColor.Zero;
+                return true;
+            }
+            return ChessBoard.CheckMateDetection(ChessBoard, CurrentPlayerColor);
         }
     }
 }

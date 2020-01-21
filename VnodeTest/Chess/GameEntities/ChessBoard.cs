@@ -188,7 +188,7 @@ namespace VnodeTest.Chess.GameEntities
 
         public bool CheckMateDetection(ChessBoard gameboard, PieceColor color)
         {
-            foreach (Piece piece in gameboard.Board.Where(t => t != null && t.Color == color))
+            foreach (Piece piece in Board.Where(t => t != null && t.Color == color))
                 if (piece.GetValidMovements(gameboard).Any())
                     return false;
             return true;
