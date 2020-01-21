@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static VnodeTest.Chess.Enums;
+using VnodeTest.GameEntities;
 
 namespace VnodeTest.Chess.GameEntities
 {
     public abstract class Piece
     {
-        public PieceColor Color { get; set; }
-        public PieceValue Value { get; set; }
+        public PieceColor Color { get; }
+        public PieceValue Value { get; }
         public string Sprite => GetSprite();
-        public (int X, int Y) StartPosition { get; set; } //von color abh. 
-        public bool HasMoved { get; set; }
+        public (int X, int Y) StartPosition { get; } //von color abh. 
+        public bool HasMoved { get; }
         private (int X, int Y) _Position;
         public (int X, int Y) Position
         {
@@ -79,16 +79,16 @@ namespace VnodeTest.Chess.GameEntities
 
         private string GetSprite()
         {
-                return Value switch
-                {
-                    PieceValue.King => Color == PieceColor.White ? "\u2654" : "\u265A",
-                    PieceValue.Queen => Color == PieceColor.White ? "\u2655" : "\u265B",
-                    PieceValue.Rook => Color == PieceColor.White ? "\u2656" : "\u265C",
-                    PieceValue.Bishop => Color == PieceColor.White ? "\u2657" : "\u265D",
-                    PieceValue.Knight => Color == PieceColor.White ? "\u2658" : "\u265E",
-                    PieceValue.Pawn => Color == PieceColor.White ? "\u2659" : "\u265F",
-                    _ => ""
-                };
+            return Value switch
+            {
+                PieceValue.King => Color == PieceColor.White ? "\u2654" : "\u265A",
+                PieceValue.Queen => Color == PieceColor.White ? "\u2655" : "\u265B",
+                PieceValue.Rook => Color == PieceColor.White ? "\u2656" : "\u265C",
+                PieceValue.Bishop => Color == PieceColor.White ? "\u2657" : "\u265D",
+                PieceValue.Knight => Color == PieceColor.White ? "\u2658" : "\u265E",
+                PieceValue.Pawn => Color == PieceColor.White ? "\u2659" : "\u265F",
+                _ => ""
+            };
         }
 
         public IEnumerable<(int X, int Y)> GetValidMovements(ChessBoard gameboard)

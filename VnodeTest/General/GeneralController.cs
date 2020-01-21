@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using static ACL.UI.React.DOM;
 
-namespace VnodeTest
+namespace VnodeTest.General
 {
     public class GeneralController
     {

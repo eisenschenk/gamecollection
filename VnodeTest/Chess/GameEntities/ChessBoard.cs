@@ -10,6 +10,8 @@ namespace VnodeTest.Chess.GameEntities
 {
     public class ChessBoard
     {
+        //TODO: my notaion -> AN implemented, AN -> my notation not implemented 
+        //TODO: still dont like trymove...
         public Piece[] Board { get; set; } = new Piece[64];
         public (int X, int Y) EnPassantTarget { get; set; }
 
@@ -59,12 +61,13 @@ namespace VnodeTest.Chess.GameEntities
 
         public bool TryMove(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game, (bool, bool) engineControlled = default)
         {
+            //trying to castle
             if (TryCastling(start, target, out chessBoard, game))
                 return true;
-
+            //checking if target is a valid move for the startpiece
             if (!start.GetValidMovements(this).Contains(target))
                 return false;
-
+            //movecounter for official counting of halfmoves (pawn moved or piece is captured resets the counter)
             if (this[target] != null || start is Pawn)
                 game.HalfMoveCounter = 0;
             else
@@ -121,8 +124,109 @@ namespace VnodeTest.Chess.GameEntities
                     EnPassantTarget = (start.Position.X, start.Color == PieceColor.Black ? start.Position.Y + 1 : start.Position.Y - 1);
             }
             game.Lastmove = (start.Copy(), target);
+            //actual movement of the piece
             MovePieceInternal(start, target);
+            //things that have to happen after the piece was moved
             game.ActionsAfterMoveSuccess(this.Copy()[target], game, engineControlled);
+        }
+
+        public bool CheckDetection(PieceColor color)
+        {
+            //checking if king is in check
+            var king = Board.Where(p => p != null && p.Color == color && p is King).Single();
+            var enemyMoves = Board.Where(p => p != null && p.Color != color).SelectMany(m => m.GetValidMovements(this));
+            if (enemyMoves.Contains(king.Position))
+                return true;
+            return false;
+        }
+
+        public string ParseToAN(Piece start, (int X, int Y) target, ChessBoard gameboard)
+        {
+            //castling
+            if (start is King && Math.Abs(start.Position.X - target.X) == 2)
+            {
+                if (start.Position.X > target.X)
+                    return "O-O-O";
+                return "O-O";
+            }
+            var _pieces = gameboard.Board.Where(p => p != null && p.Color == start.Color);
+
+            //check & checkmate
+            var kingDifferentColorPosition = gameboard.Board.Where(t => t != null && t.Color != start.Color && t is King).Single().Position;
+            var check = !_pieces.SelectMany(t => t.GetValidMovements(gameboard)).Contains(kingDifferentColorPosition) ? string.Empty : "+";
+            check = CheckMateDetection(gameboard, start.Color) ? "#" : check;
+
+            //Correct piece type
+            _pieces = _pieces.Where(s => s.Sprite == start.Sprite);
+
+            //destination
+            _pieces = _pieces.Where(d => d.GetValidMovements(gameboard).Contains(target));
+            var pieceLetter = GetCorrectSpriteAbreviation(start.Value, start.Color);
+            var promotionLetter = start is Pawn && (target.Y == 0 || target.Y == 7) ? GetCorrectSpriteAbreviation(_pieces.First().Value, start.Color) : string.Empty;
+            var capturePiece = gameboard[target] == null ? string.Empty : "x";
+
+            //xy-position the same
+            var ypieces = _pieces.Where(n => n.Position.Y == start.Position.Y).ToArray();
+            var xpieces = _pieces.Where(m => m.Position.X == start.Position.X).ToArray();
+            string sourceX = ParseIntToString(start.Position)[0].ToString();
+            string sourceY = ParseIntToString(start.Position)[1].ToString();
+            string source;
+            if (xpieces.Length == 1 && ypieces.Length == 1)
+                source = string.Empty;
+            else if (ypieces.Length > 1 && xpieces.Length == 1)
+                source = sourceX;
+            else if (xpieces.Length > 1 && ypieces.Length == 1)
+                source = sourceY;
+            else
+                source = sourceX + sourceY;
+
+            string targetX = ParseIntToString(target)[0].ToString();
+            string targetY = ParseIntToString(target)[1].ToString();
+
+            //game end
+
+
+            return $"{pieceLetter}{source}{capturePiece}{targetX}{targetY}{promotionLetter}{check}";
+        }
+
+        public bool CheckMateDetection(ChessBoard gameboard, PieceColor color)
+        {
+            foreach (Piece piece in gameboard.Board.Where(t => t != null && t.Color == color))
+                if (piece.GetValidMovements(gameboard).Any())
+                    return false;
+            return true;
+        }
+
+        private string GetCorrectSpriteAbreviation(PieceValue value, PieceColor color)
+        {
+            if (color == PieceColor.White)
+                return value switch
+                {
+                    PieceValue.King => "K",
+                    PieceValue.Queen => "Q",
+                    PieceValue.Rook => "R",
+                    PieceValue.Bishop => "B",
+                    PieceValue.Knight => "N",
+                    PieceValue.Pawn => "",
+                    _ => throw new Exception("error in GetCorrectSpriteAbreviation White")
+                };
+            return value switch
+            {
+                PieceValue.King => "k",
+                PieceValue.Queen => "q",
+                PieceValue.Rook => "r",
+                PieceValue.Bishop => "b",
+                PieceValue.Knight => "n",
+                PieceValue.Pawn => "",
+                _ => throw new Exception("error in GetCorrectSpriteAbreviation White")
+            };
+        }
+
+        public static string ParseIntToString((int X, int Y) index)
+        {
+            var yOut = (8 - index.Y).ToString();
+            var xOut = (char)('a' + index.X);
+            return xOut + yOut;
         }
 
     }

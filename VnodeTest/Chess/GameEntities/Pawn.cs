@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.Chess;
 using VnodeTest.Chess.GameEntities;
-using static VnodeTest.Chess.Enums;
 
 namespace VnodeTest.GameEntities
 {

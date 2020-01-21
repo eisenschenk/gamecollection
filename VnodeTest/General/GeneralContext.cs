@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using VnodeTest.BC.General;
+using VnodeTest.BC.General.Account;
 
-namespace VnodeTest
+namespace VnodeTest.General
 {
     public class GeneralContext
     {
-        private readonly GeneralProjection GeneralProjection;
-        private readonly General.Handler GeneralHandler;
+        private readonly AccountProjection AccountProjection;
+        private readonly Account.Handler AccountHandler;
 
         private readonly IRepository Repository;
 
@@ -24,6 +24,7 @@ namespace VnodeTest
             Type tTO = typeof(ITransferObject);
             var allTypes = System.Reflection.Assembly.GetExecutingAssembly().GetTypes();
             var knownTypes = allTypes
+                .Where(t => t.Namespace.StartsWith($"{nameof(VnodeTest)}.{nameof(BC)}.{nameof(General)}"))
                 .Where(t => !t.IsAbstract)
                 .Where(t => t.IsClass || t.IsValueType)
                 .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t)).ToArray();
@@ -32,9 +33,9 @@ namespace VnodeTest
             Repository = new Repository(store);
             var bus = MessageBus.Instance;
 
-            GeneralProjection = new GeneralProjection(store, bus);
-            GeneralProjection.Init();
-            GeneralHandler = new General.Handler(Repository, bus);
+            AccountProjection = new AccountProjection(store, bus);
+            AccountProjection.Init();
+            AccountHandler = new Account.Handler(Repository, bus);
         }
 
         public GeneralController CreateGeneralController() =>

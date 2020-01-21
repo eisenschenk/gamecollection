@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VnodeTest.BC.General
+namespace VnodeTest.BC.General.Account
 {
-    class GeneralProjection : Projection
+    class AccountProjection : Projection
     {
-        public GeneralProjection(IEventStore store, IMessageBus bus) : base(store, bus)
+        public AccountProjection(IEventStore store, IMessageBus bus) : base(store, bus)
         {
         }
 

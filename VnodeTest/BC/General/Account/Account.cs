@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VnodeTest.BC.General
+namespace VnodeTest.BC.General.Account
 {
-    public class General : AggregateRoot<General>
+    public class Account : AggregateRoot<Account>
     {
-        public class Handler : AggregateCommandHandler<General>
+        public class Handler : AggregateCommandHandler<Account>
         {
             public Handler(IRepository repository, IMessageBus bus) : base(repository, bus)
             {
