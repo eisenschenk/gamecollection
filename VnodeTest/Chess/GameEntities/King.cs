@@ -26,7 +26,7 @@ namespace VnodeTest.GameEntities
             {
                 if (!(rookTile is Rook) || rookTile.HasMoved)
                     return false;
-                //checking direction of castling and returns false when there are pieces blocking the castling attempt
+                //checking direction of castling for pieces blocking the castling attempt
                 for (int index = Position.X + direction; index == rookTile.Position.X; index += direction)
                     if (gameboard.Board[(index, Position.Y)] != null)
                         return false;

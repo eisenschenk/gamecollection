@@ -63,6 +63,8 @@
     <Compile Include="BC\Chess\Game\ChessgameProjection.cs" />
     <Compile Include="BC\General\Account\Account.cs" />
     <Compile Include="BC\General\Account\AccountProjection.cs" />
+    <Compile Include="BC\General\Friendships\Friendship.cs" />
+    <Compile Include="BC\General\Friendships\FriendshipProjection.cs" />
     <Compile Include="BC\Solitaire\Solitaire.cs" />
     <Compile Include="BC\Solitaire\SolitaireProjection.cs" />
     <Compile Include="Chess\ChessContext.cs" />
@@ -81,6 +83,8 @@
     <Compile Include="Chess\GameEntities\Rook.cs" />
     <Compile Include="Chess\PieceColor.cs" />
     <Compile Include="Chess\PieceValue.cs" />
+    <Compile Include="Chess\RenderClockTimer.cs" />
+    <Compile Include="Chess\Rendermode.cs" />
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="PaginationComponent.cs" />
@@ -109,7 +113,8 @@
     <Folder Include="BC\Chess\Game\Event\" />
     <Folder Include="BC\General\Account\Command\" />
     <Folder Include="BC\General\Account\Event\" />
-    <Folder Include="BC\General\Friendships\" />
+    <Folder Include="BC\General\Friendships\Command\" />
+    <Folder Include="BC\General\Friendships\Event\" />
     <Folder Include="BC\Solitaire\Command\" />
     <Folder Include="BC\Solitaire\Event\" />
   </ItemGroup>

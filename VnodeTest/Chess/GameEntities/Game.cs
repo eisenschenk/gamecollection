@@ -16,13 +16,7 @@ namespace VnodeTest
     {
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
-        //TODO: hasopenspots needs to be accessable for the clokcs, maybe need chessprojection here?
-        //TODO: move to gameentry
-        //public bool HasBlackPlayer { get; set; }
-        //public bool GameWasFullOnce;
-        //public bool HasWhitePlayer { get; set; }
-        //public bool HasOpenSpots => !HasBlackPlayer || !HasWhitePlayer;
-        //public bool IsEmpty => GameEmpty();
+        //TODO: hasopenspots needs to be accessable for the clokcs, maybe need chessprojection here?       
         public ChessBoard ChessBoard { get; private set; }
         public (bool W, bool B) PlayedByEngine { get; set; }
         public bool IsPromotable { get; set; }
@@ -261,6 +255,11 @@ namespace VnodeTest
                 if (changeCurrentPlayer)
                     CurrentPlayerColor = InverseColor();
             }
+        }
+
+        public void ReplacePiece((int X, int Y) target, Piece replacement)
+        {
+            ChessBoard =new ChessBoard(ChessBoard.Board.ReplacePiece(target, replacement), ChessBoard.EnPassantTarget);
         }
     }
 }

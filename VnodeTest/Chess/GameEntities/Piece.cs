@@ -11,7 +11,6 @@ namespace VnodeTest.Chess.GameEntities
     {
         public PieceColor Color { get; }
         public PieceValue Value { get; }
-        public string Sprite { get; }//=> GetSprite();
         public (int X, int Y) StartPosition { get; } //von color abh. 
         public bool HasMoved { get; }
         public (int X, int Y) Position { get; }
@@ -31,7 +30,6 @@ namespace VnodeTest.Chess.GameEntities
             StartPosition = piece.StartPosition;
             Color = piece.Color;
             Value = piece.Value;
-            Sprite = piece.Sprite;
             HasMoved = piece.HasMoved;
         }
         //@phil
