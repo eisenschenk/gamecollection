@@ -9,7 +9,7 @@ using static ACL.UI.React.DOM;
 
 namespace VnodeTest.General
 {
-    public class LoginController
+    public class AccountController
     {
         private AccountProjection AccountProjection;
         private string Username;
@@ -17,7 +17,7 @@ namespace VnodeTest.General
         private Rendermode CurrentRendermode = Rendermode.Default;
 
 
-        public LoginController(AccountProjection accountProjection)
+        public AccountController(AccountProjection accountProjection)
         {
             AccountProjection = accountProjection;
         }

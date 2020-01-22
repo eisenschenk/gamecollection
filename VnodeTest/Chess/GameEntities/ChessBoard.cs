@@ -157,7 +157,7 @@ namespace VnodeTest.Chess.GameEntities
             check = CheckMateDetection(gameboard, start.Color) ? "#" : check;
 
             //Correct piece type
-            _pieces = _pieces.Where(s => s.Sprite == start.Sprite);
+            _pieces = _pieces.Where(s => s.Value == start.Value);
 
             //destination
             _pieces = _pieces.Where(d => d.GetValidMovements(gameboard).Contains(target));

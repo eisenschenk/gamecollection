@@ -7,7 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VnodeTest.BC.Chess.Game;
 using VnodeTest.BC.General.Account;
+using VnodeTest.BC.General.Friendships;
 using VnodeTest.Chess.GameEntities;
 using VnodeTest.GameEntities;
 using static ACL.UI.React.DOM;
@@ -28,20 +30,23 @@ namespace VnodeTest.Chess
         private string Enginemove;
         private Piece Selected;
         private Piece[] PromotionSelect = new Piece[4];
-        private (ChessBoard Board, (Piece start, int target) LastMove) SelectedPreviousMove;
+        private (ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) SelectedPreviousMove;
         private bool Pause;
         private Gamemode Gamemode;
         private Rendermode RenderMode;
         private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
-        private readonly BC.General.Friendships.FriendshipProjection FriendshipProjection;
-        private readonly BC.General.Account.AccountProjection AccountProjection;
-        private readonly BC.Chess.Game.ChessgameProjection GameProjection;
+        private readonly FriendshipProjection FriendshipProjection;
+        private readonly AccountProjection AccountProjection;
+        private readonly ChessgameProjection GameProjection;
         private AccountEntry AccountEntry;
         private GameID GameID;
 
-        public ChessController(AccountEntry accountEntry)
+        public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
+            GameProjection = chessgameProjection;
+            FriendshipProjection = friendshipProjection;
             AccountEntry = accountEntry;
+            AccountProjection = accountProjection;
             ThreadPool.QueueUserWorkItem(o =>
             {
                 while (true)
@@ -73,8 +78,6 @@ namespace VnodeTest.Chess
                 return RenderPromotionSelection();
             if (RenderMode == Rendermode.WaitingForChallenged)
                 return RenderWaitingRoom();
-            if (RenderMode == Rendermode.ChallengeDenied)
-                return RenderChallengeDenied();
             return RenderBoard();
 
         }
@@ -234,6 +237,73 @@ namespace VnodeTest.Chess
                         .Skip(rowSize * row)
                         .Take(rowSize)
                         .Select((p, col) => RenderTile(p, col, row, lastmove)))));
+        }
+
+        private VNode RenderBoard()
+        {
+            //TODO: maybe rework
+            VNode board = GetBoardVNode(Gameboard, Game.Lastmove);
+
+            return Div(
+                !Game.Winner.HasValue
+                    ? Text("Surrender", Styles.AbortBtn & Styles.MP4, () =>
+                    {
+                        if (PlayerColor == PieceColor.Black)
+                            Game.Winner = PieceColor.White;
+                        else
+                            Game.Winner = PieceColor.Black;
+                        Chessgame.Commands.EndGame(GameID, Allmoves());
+                    })
+                    : Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
+                    {
+                        Game = default;
+                        RenderMode = Rendermode.Gameboard;
+                    }),
+                Row(
+                    Div(SelectedPreviousMove.Board != null ? GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove) : board),
+                    Div(Text("Pause", Styles.AbortBtn & Styles.MP4, PauseGame), RenderPreviousMoves())
+                ),
+                Game.PlayedByEngine.B == true || Game.PlayedByEngine.W == true ? Text($"EngineMove: {Enginemove}") : null,
+                Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
+                Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
+                Text($"Gameroom: {Game.ID}"),
+                Game.GameOver ? RenderGameOver() : null
+            );
+        }
+
+        private string Allmoves()
+        {
+            StringBuilder allmoves = new StringBuilder();
+            foreach ((ChessBoard Board, (Piece start, (int x, int Y) target) Lastmove) entry in Game.Moves.Where(g => Game.Moves.IndexOf(g) >= 1))
+            {
+                allmoves.Append(Game.ChessBoard.ParseToAN(entry.Lastmove.start, entry.Lastmove.target, Game.Moves[Game.Moves.IndexOf(entry) - 1].Board));
+                allmoves.Append(".");
+            }
+            return allmoves.ToString();
+        }
+
+        private void PauseGame()
+        {
+            Pause = !Pause;
+        }
+
+        private VNode RenderPreviousMoves()
+        {
+            //TODO: rework
+            void SelectForRender((ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) move)
+            {
+                if (SelectedPreviousMove == move)
+                    SelectedPreviousMove = (null, (null, (0,0)));
+                else
+                    SelectedPreviousMove = move;
+            }
+            return Fragment(Game.Moves.Select(g =>
+                Game.Moves.IndexOf(g) >= 1
+                ? Text($"Show {Gameboard.ParseToAN(g.LastMove.start, g.LastMove.target, Game.Moves[Game.Moves.IndexOf(g) - 1].Board)}",
+                    SelectedPreviousMove == g ? Styles.SelectedBtn & Styles.MP4 : Styles.Btn & Styles.MP4,
+                    () => SelectForRender(g))
+                : null
+            ));
         }
 
         private VNode RenderTile(Piece piece, int col, int row, (Piece start, (int X, int Y) target) lastmove = default)

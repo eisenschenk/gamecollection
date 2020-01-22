@@ -5,6 +5,8 @@ using System.Text;
 using VnodeTest.General;
 using VnodeTest.Chess;
 using VnodeTest.BC.General.Account;
+using static ACL.UI.React.DOM;
+
 
 namespace VnodeTest
 {
@@ -17,8 +19,7 @@ namespace VnodeTest
         private VNode RenderSideMenu()
         {
             return Div(
-                Text("Account", Styles.Btn & Styles.MP4, () => CurrentContent = UserController.Render),
-                Text("Play Game", Styles.Btn & Styles.MP4, () => CurrentContent = GameboardController.Render),
+                Text("Play Game", Styles.Btn & Styles.MP4, () => CurrentContent = ChessController.Render),
                 Text("Friends", Styles.Btn & Styles.MP4, () => CurrentContent = FriendshipController.Render)
             );
         }
@@ -28,13 +29,23 @@ namespace VnodeTest
             Session = session;
         }
 
-        //public VNode Render() => CurrentContent();
-        public VNode Render() => ChessController.Render();
+        public VNode Render() => AccountEntry == null ? LoginController.Render(this) : Row(RenderSideMenu(), CurrentContent?.Invoke());
+
 
         private ChessController _ChessController;
         private ChessController ChessController =>
         _ChessController ??
-        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry, ));
+        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry));
+
+
+        private AccountController _LoginController;
+        private AccountController LoginController =>
+            _LoginController ??= ((Application)Application.Instance).GeneralContext.CreateLoginController();
+
+
+        private FriendshipController _FriendshipController;
+        private FriendshipController FriendshipController =>
+            _FriendshipController ??= ((Application)Application.Instance).GeneralContext.CreateFriendshipController(AccountEntry);
     }
 
 }

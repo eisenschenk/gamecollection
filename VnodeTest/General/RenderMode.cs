@@ -6,9 +6,7 @@
         {
             Overview,
             PendingRequests,
-            ReceivedRequests,
             AddFriend,
-            PlayFriend,
             DeleteFriend,
         }
     }

@@ -16,3 +16,4 @@ namespace VnodeTest.BC.General.Account.Command
             Password = password;
         }
     }
+}

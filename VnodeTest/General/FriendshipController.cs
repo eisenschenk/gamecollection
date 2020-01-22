@@ -41,7 +41,6 @@ namespace VnodeTest.General
                 RenderMode.AddFriend => RenderAddFriend(),
                 RenderMode.DeleteFriend => RenderDeleteFriend(friends.Select(t => new BefriendedAccountEntrySearchWrapper(AccountProjection[t.AccountID], t.FriendshipID))),
                 RenderMode.PendingRequests => RenderReceivedRequests(),
-                RenderMode.PlayFriend => RenderChallengeFriend(),
                 _ => null,
             };
         }
@@ -72,7 +71,7 @@ namespace VnodeTest.General
         {
             return Div(
                 SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(AccountProjection.Accounts.Select(a => new BefriendedAccountEntrySearchWrapper(a, default)),
-                    w => Friendship.Commands.RequestFriend(AggregateID<Friendship>.Create(), AccountEntry.ID, w.AccountEntry.ID)),
+                    w => Friendship.Commands.RequestFriend(FriendID.Create(), AccountEntry.ID, w.AccountEntry.ID)),
                 Text("back", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.Overview)
             );
         }

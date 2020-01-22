@@ -61,6 +61,22 @@
     <Compile Include="BC\AggregateEvent.cs" />
     <Compile Include="BC\Chess\Game\Chessgame.cs" />
     <Compile Include="BC\Chess\Game\ChessgameProjection.cs" />
+    <Compile Include="BC\Chess\Game\Command\AcceptChallenge.cs" />
+    <Compile Include="BC\Chess\Game\Command\DeleteGame.cs" />
+    <Compile Include="BC\Chess\Game\Command\DeleteUnwantedChalenges.cs" />
+    <Compile Include="BC\Chess\Game\Command\DenyChallenge.cs" />
+    <Compile Include="BC\Chess\Game\Command\EndGame.cs" />
+    <Compile Include="BC\Chess\Game\Command\JoinGame.cs" />
+    <Compile Include="BC\Chess\Game\Command\OpenGame.cs" />
+    <Compile Include="BC\Chess\Game\Command\RequestChallenge.cs" />
+    <Compile Include="BC\Chess\Game\Event\ChallengeAccepted.cs" />
+    <Compile Include="BC\Chess\Game\Event\ChallengeDenied.cs" />
+    <Compile Include="BC\Chess\Game\Event\ChallengeRequested.cs" />
+    <Compile Include="BC\Chess\Game\Event\GameDeleted.cs" />
+    <Compile Include="BC\Chess\Game\Event\GameEnded.cs" />
+    <Compile Include="BC\Chess\Game\Event\GameJoined.cs" />
+    <Compile Include="BC\Chess\Game\Event\GameOpened.cs" />
+    <Compile Include="BC\Chess\Game\Event\UnwantedChallengesDeleted.cs" />
     <Compile Include="BC\General\Account\Account.cs" />
     <Compile Include="BC\General\Account\AccountProjection.cs" />
     <Compile Include="BC\General\Account\Command\LoginAccount.cs" />
@@ -69,6 +85,16 @@
     <Compile Include="BC\General\Account\Event\AccountLoggedIn.cs" />
     <Compile Include="BC\General\Account\Event\AccountLoggedOut.cs" />
     <Compile Include="BC\General\Account\Event\AccountRegistered.cs" />
+    <Compile Include="BC\General\Friendships\Command\AbortFriendship.cs" />
+    <Compile Include="BC\General\Friendships\Command\AcceptFriendRequest.cs" />
+    <Compile Include="BC\General\Friendships\Command\DenyFriendRequest.cs" />
+    <Compile Include="BC\General\Friendships\Command\RequestFriendship.cs" />
+    <Compile Include="BC\General\Friendships\Event\FriendRequestAccepted.cs" />
+    <Compile Include="BC\General\Friendships\Event\FriendRequestDenied.cs" />
+    <Compile Include="BC\General\Friendships\Event\FriendshipAborted.cs" />
+    <Compile Include="BC\General\Friendships\Event\FriendshipRequested.cs" />
+    <Compile Include="BC\General\Friendships\Friendship.cs" />
+    <Compile Include="BC\General\Friendships\FriendshipProjection.cs" />
     <Compile Include="BC\Solitaire\Solitaire.cs" />
     <Compile Include="BC\Solitaire\SolitaireProjection.cs" />
     <Compile Include="Chess\ChessContext.cs" />
@@ -94,10 +120,11 @@
     <Compile Include="General\PlayFriendController.cs" />
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
-    <Compile Include="General\LoginController.cs" />
+    <Compile Include="General\AccountController.cs" />
     <Compile Include="General\RenderMode.cs" />
     <Compile Include="ISearchable.cs" />
     <Compile Include="PaginationComponent.cs" />
+    <Compile Include="PM\AcceptChallenge.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RootController.cs" />
@@ -119,10 +146,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="BC\Chess\Game\Command\" />
-    <Folder Include="BC\Chess\Game\Event\" />
-    <Folder Include="BC\General\Friendships\Command\" />
-    <Folder Include="BC\General\Friendships\Event\" />
     <Folder Include="BC\Solitaire\Command\" />
     <Folder Include="BC\Solitaire\Event\" />
   </ItemGroup>

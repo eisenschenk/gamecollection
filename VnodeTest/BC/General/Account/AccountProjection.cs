@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.BC.General.Account.Event;
 using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
 
 
@@ -43,22 +44,22 @@ namespace VnodeTest.BC.General.Account
         }
     }
 
-}
-public class AccountEntry
-{
-    public AccountID ID { get; }
-    public string Username { get; }
-    public string Password { get; }
-    public DateTimeOffset CreatedAt { get; }
-    public bool LoggedIn { get; set; }
 
-    public AccountEntry(AccountID id, string username, string password, DateTimeOffset createdAt)
+    public class AccountEntry
     {
-        ID = id;
-        Username = username;
-        Password = password;
-        CreatedAt = createdAt;
+        public AccountID ID { get; }
+        public string Username { get; }
+        public string Password { get; }
+        public DateTimeOffset CreatedAt { get; }
+        public bool LoggedIn { get; set; }
+
+        public AccountEntry(AccountID id, string username, string password, DateTimeOffset createdAt)
+        {
+            ID = id;
+            Username = username;
+            Password = password;
+            CreatedAt = createdAt;
+        }
     }
 }
-}
-}
+

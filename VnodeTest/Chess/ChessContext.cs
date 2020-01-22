@@ -15,8 +15,8 @@ namespace VnodeTest
 {
     public class ChessContext
     {
-        private readonly ChessgameProjection ChessProjection;
-        private readonly Chessgame.Handler ChessHandler;
+        public ChessgameProjection ChessProjection { get; }
+        public Chessgame.Handler ChessHandler { get; }
 
         private readonly IRepository Repository;
 
@@ -42,7 +42,7 @@ namespace VnodeTest
             ChessHandler = new Chessgame.Handler(Repository, bus);
         }
         //mehrere controller und friendships& play vs friend in anderen controller
-        public ChessController CreateChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection) =>
-            new ChessController(accountEntry, accountProjection, ChessProjection, ((Application)Application.Instance).GeneralContext);
+        public ChessController CreateChessController(AccountEntry accountEntry) =>
+            new ChessController(accountEntry, ((Application)Application.Instance).GeneralContext.AccountProjection, ChessProjection, ((Application)Application.Instance).GeneralContext.FriendshipProjection);
     }
 }
