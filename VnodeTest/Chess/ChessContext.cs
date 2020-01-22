@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VnodeTest.BC.Chess.Game;
+using VnodeTest.BC.General.Account;
+using VnodeTest.BC.General.Friendships;
 using VnodeTest.Chess;
 
 namespace VnodeTest
@@ -39,8 +41,8 @@ namespace VnodeTest
             ChessProjection.Init();
             ChessHandler = new Chessgame.Handler(Repository, bus);
         }
-
-        public ChessController CreateChessController() =>
-            new ChessController();
+        //mehrere controller und friendships& play vs friend in anderen controller
+        public ChessController CreateChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection) =>
+            new ChessController(accountEntry, accountProjection, ChessProjection, ((Application)Application.Instance).GeneralContext);
     }
 }

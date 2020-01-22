@@ -38,8 +38,8 @@ namespace VnodeTest.General
             AccountHandler = new Account.Handler(Repository, bus);
         }
 
-        public GeneralController CreateGeneralController() =>
-            new GeneralController();
+        public AccountController CreateGeneralController() =>
+            new AccountController();
     }
 
 }

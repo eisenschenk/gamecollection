@@ -39,12 +39,9 @@ namespace VnodeTest.Chess
         private AccountEntry AccountEntry;
         private GameID GameID;
 
-        public ChessController(AccountProjection accountProjection, AccountEntry accountEntry, BC.Chess.Game.ChessgameProjection gameProjection, BC.General.Friendships.FriendshipProjection friendshipProjection)
+        public ChessController(AccountEntry accountEntry)
         {
-            AccountProjection = accountProjection;
             AccountEntry = accountEntry;
-            GameProjection = gameProjection;
-            FriendshipProjection = friendshipProjection;
             ThreadPool.QueueUserWorkItem(o =>
             {
                 while (true)

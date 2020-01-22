@@ -7,11 +7,11 @@ using static ACL.UI.React.DOM;
 
 namespace VnodeTest.General
 {
-    public class GeneralController
+    public class AccountController
     {
     
 
-        public GeneralController()
+        public AccountController()
         {
            
         }

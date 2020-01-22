@@ -85,8 +85,12 @@
     <Compile Include="Chess\PieceValue.cs" />
     <Compile Include="Chess\RenderClockTimer.cs" />
     <Compile Include="Chess\Rendermode.cs" />
+    <Compile Include="General\FriendshipController.cs" />
+    <Compile Include="General\Passwordhelper.cs" />
+    <Compile Include="General\PlayFriendController.cs" />
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
+    <Compile Include="General\LoginController.cs" />
     <Compile Include="PaginationComponent.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,7 +98,7 @@
     <Compile Include="SearchbarComponent.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="Solitaire\SolitaireContext.cs" />
-    <Compile Include="General\GeneralController.cs" />
+    <Compile Include="General\AccountController.cs" />
     <Compile Include="Solitaire\SolitaireController.cs" />
     <Compile Include="Styles.cs" />
     <Compile Include="WatchComponent.cs" />
