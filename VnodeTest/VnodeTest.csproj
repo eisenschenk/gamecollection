@@ -63,8 +63,12 @@
     <Compile Include="BC\Chess\Game\ChessgameProjection.cs" />
     <Compile Include="BC\General\Account\Account.cs" />
     <Compile Include="BC\General\Account\AccountProjection.cs" />
-    <Compile Include="BC\General\Friendships\Friendship.cs" />
-    <Compile Include="BC\General\Friendships\FriendshipProjection.cs" />
+    <Compile Include="BC\General\Account\Command\LoginAccount.cs" />
+    <Compile Include="BC\General\Account\Command\LogoutAccount.cs" />
+    <Compile Include="BC\General\Account\Command\RegisterAccount.cs" />
+    <Compile Include="BC\General\Account\Event\AccountLoggedIn.cs" />
+    <Compile Include="BC\General\Account\Event\AccountLoggedOut.cs" />
+    <Compile Include="BC\General\Account\Event\AccountRegistered.cs" />
     <Compile Include="BC\Solitaire\Solitaire.cs" />
     <Compile Include="BC\Solitaire\SolitaireProjection.cs" />
     <Compile Include="Chess\ChessContext.cs" />
@@ -91,6 +95,8 @@
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="General\LoginController.cs" />
+    <Compile Include="General\RenderMode.cs" />
+    <Compile Include="ISearchable.cs" />
     <Compile Include="PaginationComponent.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -98,9 +104,9 @@
     <Compile Include="SearchbarComponent.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="Solitaire\SolitaireContext.cs" />
-    <Compile Include="General\AccountController.cs" />
     <Compile Include="Solitaire\SolitaireController.cs" />
     <Compile Include="Styles.cs" />
+    <Compile Include="VNodeExtensions.cs" />
     <Compile Include="WatchComponent.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -115,8 +121,6 @@
   <ItemGroup>
     <Folder Include="BC\Chess\Game\Command\" />
     <Folder Include="BC\Chess\Game\Event\" />
-    <Folder Include="BC\General\Account\Command\" />
-    <Folder Include="BC\General\Account\Event\" />
     <Folder Include="BC\General\Friendships\Command\" />
     <Folder Include="BC\General\Friendships\Event\" />
     <Folder Include="BC\Solitaire\Command\" />

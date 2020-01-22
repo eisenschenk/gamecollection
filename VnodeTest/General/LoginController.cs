@@ -72,11 +72,17 @@ namespace VnodeTest.General
                 {
                     if (!AccountProjection.Accounts.Select(x => x.Username).Contains(Username))
                     {
-                        //TODO: try catch so accountcreation doesnt go through
+                        //TODO: try catch so accountcreation doesnt go through#
+                        try 
+                        { 
                         Account.Commands.RegisterAccount(ACL.ES.AggregateID<Account>.Create(), Username, Password);
+                        }
+                        catch(ArgumentException)
+                        {
+                        CurrentRendermode = Rendermode.UsernameTaken;
+                        }
                         Username = string.Empty;
                         Password = string.Empty;
-                        CurrentRendermode = Rendermode.UsernameTaken;
                     }
                     else
                         CurrentRendermode = Rendermode.Register;
