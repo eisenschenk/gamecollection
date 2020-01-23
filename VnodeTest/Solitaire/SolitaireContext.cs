@@ -13,8 +13,8 @@ namespace VnodeTest
 {
     public class SolitaireContext
     {
-       private readonly SolitaireProjection SolitaireProjection;
-       private readonly BC.Solitaire.Solitaire.Handler SolitaireHandler;
+        private readonly SolitaireProjection SolitaireProjection;
+        private readonly BC.Solitaire.Solitaire.Handler SolitaireHandler;
 
         private readonly IRepository Repository;
 
@@ -28,7 +28,9 @@ namespace VnodeTest
             var knownTypes = allTypes
                 .Where(t => !t.IsAbstract)
                 .Where(t => t.IsClass || t.IsValueType)
-                .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t)).ToArray();
+                .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t))
+                .Where(t => t.Namespace.StartsWith($"{nameof(VnodeTest)}.{nameof(BC)}.{nameof(Solitaire)}")).ToArray();
+
 
             JSONFileEventStore store = new JSONFileEventStore(storePath, knownTypes);
             Repository = new Repository(store);

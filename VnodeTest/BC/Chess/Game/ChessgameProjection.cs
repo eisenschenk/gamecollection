@@ -31,14 +31,14 @@ namespace VnodeTest.BC.Chess.Game
             {
                 while (true)
                     foreach (GameEntry entry in Games.ToArray())
-                        if (!entry.Game.GameWasFullOnce && entry.Created.AddSeconds(entry.Timer) < DateTime.Now)
+                        if (!entry.GameWasFullOnce && entry.Created.AddSeconds(entry.Timer) < DateTime.Now)
                             Chessgame.Commands.DeleteGame(entry.ID);
             });
         }
 
         private void On(GameOpened @event)
         {
-            Dict.Add(@event.ID, new GameEntry(@event.ID, @event.Gamemode, @event.Clocktimer));
+            Dict.Add(@event.ID, new GameEntry(@event.ID, @event.Gamemode, this, @event.Clocktimer));
         }
         private void On(ChallengeRequested @event)
         {
@@ -67,9 +67,6 @@ namespace VnodeTest.BC.Chess.Game
         {
             Dict[@event.ID].AllMoves = @event.Moves;
             Dict[@event.ID].Closed = true;
-
-            Dict[@event.ID].Game.HasWhitePlayer = false;
-            Dict[@event.ID].Game.HasBlackPlayer = false;
         }
         private void On(ChallengeDenied @event)
         {
@@ -103,19 +100,25 @@ namespace VnodeTest.BC.Chess.Game
         public bool Closed { get; set; }
         public bool GameOver => Winner.HasValue;
         public PieceColor? Winner => Game?.Winner;
-        //TODO: think about this again, too many different/same playerwhite/black
-        //public bool HasBlackPlayer { get; set; }
-        //public bool GameWasFullOnce;
-        //public bool HasWhitePlayer { get; set; }
-        //public bool HasOpenSpots => !HasBlackPlayer || !HasWhitePlayer;
-        //public bool IsEmpty => GameEmpty();
+        public bool HasBlackPlayer => Gamemode == Gamemode.PvE || Gamemode == Gamemode.EvE ? true : PlayerBlack != default;
+        public bool HasWhitePlayer => Gamemode == Gamemode.EvE ? true : PlayerWhite != default;
+        public bool GameWasFullOnce;
+        public bool HasOpenSpots => GameHasOpenSpots();
 
 
-        public GameEntry(GameID id, Gamemode gamemode, double playerClockTime = 50000)
+        public GameEntry(GameID id, Gamemode gamemode, ChessgameProjection chessgameProjection, double playerClockTime = 50000)
         {
             ID = id;
             Gamemode = gamemode;
-            Game = new VnodeTest.Game(id, gamemode, new ChessBoard(), playerClockTime);
+            Game = new VnodeTest.Game(id, gamemode, new ChessBoard(), playerClockTime, chessgameProjection);
+        }
+
+        private bool GameHasOpenSpots()
+        {
+            if (!HasBlackPlayer || !HasWhitePlayer)
+                return true;
+            GameWasFullOnce = true;
+            return false;
         }
     }
 }

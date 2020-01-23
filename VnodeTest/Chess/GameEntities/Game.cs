@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.BC.Chess.Game;
 using VnodeTest.Chess;
 using VnodeTest.Chess.GameEntities;
 using VnodeTest.GameEntities;
@@ -18,6 +19,7 @@ namespace VnodeTest
         public Gamemode Gamemode { get; }
         //TODO: hasopenspots needs to be accessable for the clokcs, maybe need chessprojection here?       
         public ChessBoard ChessBoard { get; private set; }
+        public ChessgameProjection ChessgameProjection { get; }
         public (bool W, bool B) PlayedByEngine { get; set; }
         public bool IsPromotable { get; set; }
         public bool GameOver => Winner.HasValue;
@@ -36,11 +38,12 @@ namespace VnodeTest
         public readonly List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)> Moves = new List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)>();
 
 
-        public Game(GameID id, Gamemode gamemode, ChessBoard gameboard, double playerClockTime)
+        public Game(GameID id, Gamemode gamemode, ChessBoard gameboard, double playerClockTime, ChessgameProjection chessgameProjection)
         {
             ID = id;
             Gamemode = gamemode;
             ChessBoard = gameboard;
+            ChessgameProjection = chessgameProjection;
             Moves.Add((gameboard, (null, (0, 0))));
             LastClockUpdate = DateTime.Now;
             WhiteClock = TimeSpan.FromSeconds(playerClockTime);
@@ -243,7 +246,7 @@ namespace VnodeTest
                 {
                     if (CurrentPlayerColor != color)
                         return;
-                    if (!HasOpenSpots)
+                    if (!ChessgameProjection[ID].HasOpenSpots)
                         clock -= now - LastClockUpdate;
                     if (clock <= TimeSpan.Zero)
                         Winner = color;
@@ -259,7 +262,7 @@ namespace VnodeTest
 
         public void ReplacePiece((int X, int Y) target, Piece replacement)
         {
-            ChessBoard =new ChessBoard(ChessBoard.Board.ReplacePiece(target, replacement), ChessBoard.EnPassantTarget);
+            ChessBoard = new ChessBoard(ChessBoard.Board.ReplacePiece(target, replacement), ChessBoard.EnPassantTarget);
         }
     }
 }

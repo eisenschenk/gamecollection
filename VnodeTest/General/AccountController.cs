@@ -83,6 +83,7 @@ namespace VnodeTest.General
                         }
                         Username = string.Empty;
                         Password = string.Empty;
+                        CurrentRendermode = Rendermode.Default;
                     }
                     else
                         CurrentRendermode = Rendermode.Register;

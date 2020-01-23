@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,12 +66,80 @@ namespace VnodeTest.Chess.GameEntities
 
         public IEnumerator<Piece> GetEnumerator()
         {
-            return (IEnumerator<Piece>)Board.GetEnumerator();
+            return new BoardEnum(Board);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return Board.GetEnumerator();
+            return (IEnumerator<Piece>)GetEnumerator();
+        }
+
+        public class BoardEnum : IEnumerator<Piece>
+        {
+            public Piece[] Pieces;
+            int Position = -1;
+            bool Disposed = false;
+            SafeHandle Handle = new SafeFileHandle(IntPtr.Zero, true);
+
+            public BoardEnum(Piece[] pieces)
+            {
+                Pieces = pieces;
+            }
+            public bool MoveNext()
+            {
+                Position++;
+                return Position < Pieces.Length;
+            }
+
+            public void Reset()
+            {
+                Position = -1;
+            }
+
+            public void Dispose()
+            {
+                // Dispose of unmanaged resources.
+                Dispose(true);
+                // Suppress finalization.
+                GC.SuppressFinalize(this);
+            }
+            protected virtual void Dispose(bool disposing)
+            {
+                if (Disposed)
+                    return;
+
+                if (disposing)
+                {
+                    Handle.Dispose();
+                    // Free any other managed objects here.
+                    //
+                }
+
+                Disposed = true;
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
+
+            public Piece Current
+            {
+                get
+                {
+                    try
+                    {
+                        return Pieces[Position];
+                    }
+                    catch
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+            }
         }
     }
 

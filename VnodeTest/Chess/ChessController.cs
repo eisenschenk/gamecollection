@@ -41,6 +41,7 @@ namespace VnodeTest.Chess
         private AccountEntry AccountEntry;
         private GameID GameID;
 
+        //TODO: maybe put challenge friend etc in its own controller
         public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
             GameProjection = chessgameProjection;
@@ -111,14 +112,11 @@ namespace VnodeTest.Chess
         {
             RenderClockTimerMode = RenderClockTimer.Default;
             GameID = GameID.Create();
-            BC.Chess.Game.Chessgame.Commands.OpenGame(GameID, gamemode, clocktimer);
+            Chessgame.Commands.OpenGame(GameID, gamemode, clocktimer);
             Game = GameProjection[GameID].Game;
-            BC.Chess.Game.Chessgame.Commands.JoinGame(GameID, AccountEntry.ID);
+            Chessgame.Commands.JoinGame(GameID, AccountEntry.ID);
 
             Engine = new EngineControl();
-            //TODO: move has xplayer to opengame event?
-            Game.HasWhitePlayer = true;
-            Game.HasBlackPlayer = true;
             PlayerColor = PieceColor.White;
             //EvE loop
             if (gamemode == Gamemode.EvE)
@@ -142,14 +140,13 @@ namespace VnodeTest.Chess
             {
                 Game = GameProjection[GameID].Game;
                 PlayerColor = PieceColor.White;
-                Game.HasWhitePlayer = true;
                 RenderMode = Rendermode.Gameboard;
             }
             //waiting for anyone to accept challenge
             return Div(
                 Fragment(challenges.Select(c =>
                     Div(
-                        Game.HasOpenSpots && c.Created.AddSeconds(c.Timer) > DateTime.Now
+                        GameProjection[c.ID].HasOpenSpots && c.Created.AddSeconds(c.Timer) > DateTime.Now
                             ? Row(
                                 Text($"Waiting for Friend: {c.Timer - c.Elapsed.Seconds}"),
                                 Text("Abort Challenge!", Styles.AbortBtn & Styles.MP4, () => BC.Chess.Game.Chessgame.Commands.DenyChallenge(c.ID))
@@ -169,12 +166,10 @@ namespace VnodeTest.Chess
                           Text(AccountProjection[c.Challenger].Username),
                           Text("Accept", Styles.Btn & Styles.MP4, () =>
                           {
-                              BC.Chess.Game.Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver);
+                              Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver);
                               GameID = c.ID;
                               Game = GameProjection[GameID].Game;
                               PlayerColor = PieceColor.Black;
-                              //TODO: move to acceptchallenge
-                              Game.HasBlackPlayer = true;
                           }),
                           Text("Deny", Styles.Btn & Styles.MP4, () => BC.Chess.Game.Chessgame.Commands.DenyChallenge(c.ID))
                       )
@@ -211,12 +206,10 @@ namespace VnodeTest.Chess
         private void ChallengeFriend(AccountEntry accountEntry, double clocktimer)
         {
             GameID = GameID.Create();
-            BC.Chess.Game.Chessgame.Commands.OpenGame(GameID, Gamemode.PvF, clocktimer);
-            BC.Chess.Game.Chessgame.Commands.RequestChallenge(GameID, AccountEntry.ID, accountEntry.ID);
+            Chessgame.Commands.OpenGame(GameID, Gamemode.PvF, clocktimer);
+            Chessgame.Commands.RequestChallenge(GameID, AccountEntry.ID, accountEntry.ID);
             Game = GameProjection[GameID].Game;
             PlayerColor = PieceColor.White;
-            //TODO: move to requestchallenge
-            Game.HasWhitePlayer = true;
             RenderMode = Rendermode.WaitingForChallenged;
             RenderClockTimerMode = RenderClockTimer.Default;
         }
@@ -289,20 +282,20 @@ namespace VnodeTest.Chess
 
         private VNode RenderPreviousMoves()
         {
-            //TODO: rework
             void SelectForRender((ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) move)
             {
+                //deselect and return to livegame
                 if (SelectedPreviousMove == move)
-                    SelectedPreviousMove = (null, (null, (0,0)));
+                    SelectedPreviousMove = (null, (null, (0, 0)));
                 else
                     SelectedPreviousMove = move;
             }
             return Fragment(Game.Moves.Select(g =>
                 Game.Moves.IndexOf(g) >= 1
-                ? Text($"Show {Gameboard.ParseToAN(g.LastMove.start, g.LastMove.target, Game.Moves[Game.Moves.IndexOf(g) - 1].Board)}",
-                    SelectedPreviousMove == g ? Styles.SelectedBtn & Styles.MP4 : Styles.Btn & Styles.MP4,
-                    () => SelectForRender(g))
-                : null
+                    ? Text($"Show {Gameboard.ParseToAN(g.LastMove.start, g.LastMove.target, Game.Moves[Game.Moves.IndexOf(g) - 1].Board)}",
+                        Styles.MP4 & (SelectedPreviousMove == g ? Styles.SelectedBtn : Styles.Btn),
+                        () => SelectForRender(g))
+                    : null
             ));
         }
 
@@ -369,7 +362,6 @@ namespace VnodeTest.Chess
             };
         }
 
-        //TODO: implement here, not in Piece
         public static string GetSprite(Piece piece)
         {
             return piece.Value switch

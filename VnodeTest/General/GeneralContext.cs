@@ -27,10 +27,10 @@ namespace VnodeTest.General
             Type tTO = typeof(ITransferObject);
             var allTypes = System.Reflection.Assembly.GetExecutingAssembly().GetTypes();
             var knownTypes = allTypes
-                .Where(t => t.Namespace.StartsWith($"{nameof(VnodeTest)}.{nameof(BC)}.{nameof(General)}"))
                 .Where(t => !t.IsAbstract)
                 .Where(t => t.IsClass || t.IsValueType)
-                .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t)).ToArray();
+                .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t))
+                .Where(t => t.Namespace.StartsWith($"{nameof(VnodeTest)}.{nameof(BC)}.{nameof(General)}")).ToArray();
 
             JSONFileEventStore store = new JSONFileEventStore(storePath, knownTypes);
             Repository = new Repository(store);
