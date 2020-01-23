@@ -33,12 +33,12 @@ namespace VnodeTest.Chess.GameEntities
         private ImmutableBoard PutPiecesInStartingPosition()
         {
             Piece[] pieces = new Piece[64];
-            //putting down black pieces
-            PutPawns(pieces, PieceColor.White, 1);
-            PutRoyalty(pieces, PieceColor.White, 0);
             //putting down white pieces
-            PutPawns(pieces, PieceColor.Black, 6);
-            PutRoyalty(pieces, PieceColor.Black, 7);
+            pieces = PutPawns(pieces, PieceColor.White, 1);
+            pieces = PutRoyalty(pieces, PieceColor.White, 0);
+            //putting down black pieces
+            pieces = PutPawns(pieces, PieceColor.Black, 6);
+            pieces = PutRoyalty(pieces, PieceColor.Black, 7);
             return new ImmutableBoard(pieces);
         }
         private Piece[] PutPawns(Piece[] pieces, PieceColor color, int y)
@@ -48,16 +48,17 @@ namespace VnodeTest.Chess.GameEntities
             return pieces;
         }
 
-        private void PutRoyalty(Piece[] pieces, PieceColor color, int y)
+        private Piece[] PutRoyalty(Piece[] pieces, PieceColor color, int y)
         {
             foreach (int x in new[] { 0, 7 })
                 pieces[x + y * 8] = new Rook((x, y), color, PieceValue.Rook, (x, y), false);
             foreach (int x in new[] { 1, 6 })
-                pieces[x + y * 8] = new Knight((x, y), color, PieceValue.Rook, (x, y), false);
+                pieces[x + y * 8] = new Knight((x, y), color, PieceValue.Knight, (x, y), false);
             foreach (int x in new[] { 2, 5 })
-                pieces[x + y * 8] = new Bishop((x, y), color, PieceValue.Rook, (x, y), false);
-            pieces[4 + y * 8] = new King((4, y), color, PieceValue.Rook, (4, y), false);
-            pieces[3 + y * 8] = new Queen((3, y), color, PieceValue.Rook, (3, y), false);
+                pieces[x + y * 8] = new Bishop((x, y), color, PieceValue.Bishop, (x, y), false);
+            pieces[4 + y * 8] = new King((4, y), color, PieceValue.King, (4, y), false);
+            pieces[3 + y * 8] = new Queen((3, y), color, PieceValue.Queen, (3, y), false);
+            return pieces;
         }
 
         public bool TryMove(Piece start, (int X, int Y) target, out ChessBoard chessBoard, Game game, (bool, bool) engineControlled = default)
@@ -125,7 +126,7 @@ namespace VnodeTest.Chess.GameEntities
             game.ActionsAfterMoveSuccess(chessBoard[target], game, engineControlled);
         }
 
-        public ChessBoard HypotheticalMove(ChessBoard gameboard, Piece start, (int X, int Y) target)
+        public static ChessBoard HypotheticalMove(ChessBoard gameboard, Piece start, (int X, int Y) target)
         {
             return new ChessBoard(gameboard.Board.Move(start, target), gameboard.EnPassantTarget);
         }
@@ -210,7 +211,7 @@ namespace VnodeTest.Chess.GameEntities
 
         public static string ParseIntToString((int X, int Y) index)
         {
-            var yOut = (8 - index.Y).ToString();
+            var yOut = (index.Y + 1).ToString();
             var xOut = (char)('a' + index.X);
             return xOut + yOut;
         }

@@ -23,7 +23,7 @@ namespace VnodeTest.Chess
     public class ChessController
     {
         public Game Game;
-        private ChessBoard Gameboard => Game != null ? Game.ChessBoard : null;
+        private ChessBoard Gameboard => Game?.ChessBoard;
         private VNode RefreshReference;
         private PieceColor PlayerColor;
         private IEngine Engine;
@@ -222,8 +222,7 @@ namespace VnodeTest.Chess
                     .Select(row => Row(gameboard.Board
                         .Skip(rowSize * row)
                         .Take(rowSize)
-                        .Select((p, col) => RenderTile(p, col, row, lastmove))
-                        .Reverse())));
+                        .Select((p, col) => RenderTile(p, col, row, lastmove)))));
             else
                 return Fragment(Enumerable.Range(0, 8)
                     .Select(row => Row(gameboard.Board

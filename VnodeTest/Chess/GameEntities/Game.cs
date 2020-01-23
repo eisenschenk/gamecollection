@@ -111,25 +111,24 @@ namespace VnodeTest
             return c - 'a';
         }
 
-
         private static int ParseStringYToInt(string input)
         {
             var c = input[input.Length - 1];
             if (c < '1' || c > '8')
                 throw new Exception("out of bounds Y");
-            return 55 - c + 1;
+            return 7 -  Math.Abs(56 - c);
         }
 
         public string GetFeNotation()
         {
             int emptyCount = 0;
             StringBuilder stringBuilder = new StringBuilder();
-            for (int y = 0; y < 8; y++)
+            for (int y = 7; y >= 0; y--)
                 for (int x = 0; x < 8; x++)
                 {
                     var piece = ChessBoard[(x, y)];
                     //checking if new line starts
-                    if (x == 0 && y >= 1)
+                    if (x == 0 && y <= 6)
                     {
                         //writing counter before line end, reset counter
                         if (emptyCount != 0)
@@ -177,23 +176,23 @@ namespace VnodeTest
 
         private string GetPossibleCastles()
         {
-            string CheckCastle((int X, int Y) king, (int X, int Y) rook)
+            string CheckCastle((int X, int Y) king, (int X, int Y) rook, bool kingside = default)
             {
                 string _output = string.Empty;
-                bool comparison = king.X == rook.X;
+                bool white = ChessBoard.Board[king].Color == PieceColor.White;
                 if (ChessBoard.Board[rook] != null && !ChessBoard.Board[rook].HasMoved
                     && ChessBoard.Board[king] != null && !ChessBoard.Board[king].HasMoved)
-                    return _output + comparison switch
+                    return kingside switch
                     {
-                        true => ChessBoard.Board[king].Color == PieceColor.White ? "Q" : "q",
-                        false => ChessBoard.Board[king].Color == PieceColor.White ? "K" : "k",
+                        true => white ? "K" : "k",
+                        false => white ? "Q" : "q"
                     };
 
                 return _output;
             }
-            string output = CheckCastle((4, 7), (7, 7));
+            string output = CheckCastle((4, 7), (7, 7), true);
             output += CheckCastle((4, 7), (0, 7));
-            output += CheckCastle((4, 0), (7, 0));
+            output += CheckCastle((4, 0), (7, 0), true);
             return output += CheckCastle((4, 0), (0, 0));
         }
 

@@ -24,13 +24,13 @@ namespace VnodeTest.GameEntities
             {
                 //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
                 var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
-                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(x => x.Y < Position.Y && enemyPiece(x) || x == gameboard.EnPassantTarget));
+                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => p.Y > Position.Y && enemyPiece(p) || p == gameboard.EnPassantTarget));
             }
             else
             {
                 //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
                 var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
-                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(x => x.Y == Position.Y && enemyPiece(x) || x == gameboard.EnPassantTarget));
+                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => p.Y < Position.Y && enemyPiece(p) || p == gameboard.EnPassantTarget));
             }
         }
 

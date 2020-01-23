@@ -110,7 +110,6 @@ namespace VnodeTest.Chess.GameEntities
 
                 if (disposing)
                 {
-                    Handle.Dispose();
                     // Free any other managed objects here.
                     //
                 }

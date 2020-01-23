@@ -91,7 +91,7 @@ namespace VnodeTest.Chess.GameEntities
         {
             return GetPotentialMovements(gameboard).Where(m =>
             {
-                var hypotheticalGameBoard = gameboard.HypotheticalMove(gameboard, this, m);
+                var hypotheticalGameBoard = ChessBoard.HypotheticalMove(gameboard, this, m);
                 var kingSameColorPosition = hypotheticalGameBoard.Board
                     .Where(t => t != null && t.Color == Color && t is King)
                     .Single().Position;

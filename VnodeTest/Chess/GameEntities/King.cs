@@ -27,18 +27,17 @@ namespace VnodeTest.GameEntities
                 if (!(rookTile is Rook) || rookTile.HasMoved)
                     return false;
                 //checking direction of castling for pieces blocking the castling attempt
-                for (int index = Position.X + direction; index == rookTile.Position.X; index += direction)
+                for (int index = Position.X + direction; index != rookTile.Position.X; index += direction)
                     if (gameboard.Board[(index, Position.Y)] != null)
                         return false;
 
                 //checking if king is in check while doing the castling
                 if (gameboard.CheckDetection(Color)
-                    || gameboard.HypotheticalMove(gameboard, this, (Position.X + direction, Position.Y)).CheckDetection(Color)
-                    || gameboard.HypotheticalMove(gameboard, this, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
+                    || ChessBoard.HypotheticalMove(gameboard, this, (Position.X + direction, Position.Y)).CheckDetection(Color)
+                    || ChessBoard.HypotheticalMove(gameboard, this, (Position.X + 2 * direction, Position.Y)).CheckDetection(Color))
                     return false;
                 return true;
             }
-            //hardcoded starting positions of both kings
             if (!HasMoved && (Position == (4, 0) || Position == (4, 7)))
             {
 
