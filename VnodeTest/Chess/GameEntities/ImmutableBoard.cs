@@ -64,82 +64,14 @@ namespace VnodeTest.Chess.GameEntities
             return (position.X + position.Y * 8);
         }
 
-        public IEnumerator<Piece> GetEnumerator()
+        IEnumerator<Piece> IEnumerable<Piece>.GetEnumerator()
         {
-            return new BoardEnum(Board);
+            return ((IEnumerable<Piece>)Board).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator<Piece>)GetEnumerator();
-        }
-
-        public class BoardEnum : IEnumerator<Piece>
-        {
-            public Piece[] Pieces;
-            int Position = -1;
-            bool Disposed = false;
-            SafeHandle Handle = new SafeFileHandle(IntPtr.Zero, true);
-
-            public BoardEnum(Piece[] pieces)
-            {
-                Pieces = pieces;
-            }
-            public bool MoveNext()
-            {
-                Position++;
-                return Position < Pieces.Length;
-            }
-
-            public void Reset()
-            {
-                Position = -1;
-            }
-
-            public void Dispose()
-            {
-                // Dispose of unmanaged resources.
-                Dispose(true);
-                // Suppress finalization.
-                GC.SuppressFinalize(this);
-            }
-            protected virtual void Dispose(bool disposing)
-            {
-                if (Disposed)
-                    return;
-
-                if (disposing)
-                {
-                    // Free any other managed objects here.
-                    //
-                }
-
-                Disposed = true;
-            }
-
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return Current;
-                }
-            }
-
-            public Piece Current
-            {
-                get
-                {
-                    try
-                    {
-                        return Pieces[Position];
-                    }
-                    catch
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
+            return Board.GetEnumerator();
         }
     }
-
 }

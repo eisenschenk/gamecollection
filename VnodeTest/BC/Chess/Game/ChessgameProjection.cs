@@ -85,6 +85,7 @@ namespace VnodeTest.BC.Chess.Game
 
     public class GameEntry
     {
+        //TODO: move chesscontroller variables into gameentry, try to get everything by accessing the projection
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
         public string AllMoves;

@@ -22,7 +22,7 @@ namespace VnodeTest.Chess
 {
     public class ChessController
     {
-        public Game Game;
+        public Game Game { get; private set; }
         private ChessBoard Gameboard => Game?.ChessBoard;
         private VNode RefreshReference;
         private PieceColor PlayerColor;
@@ -32,7 +32,6 @@ namespace VnodeTest.Chess
         private Piece[] PromotionSelect = new Piece[4];
         private (ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) SelectedPreviousMove;
         private bool Pause;
-        private Gamemode Gamemode;
         private Rendermode RenderMode;
         private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
         private readonly FriendshipProjection FriendshipProjection;
@@ -41,7 +40,7 @@ namespace VnodeTest.Chess
         private AccountEntry AccountEntry;
         private GameID GameID;
 
-        //TODO: maybe put challenge friend etc in its own controller
+        //TODO: maybe put challenge friend etc in its own controller -> playfriendcontroller
         public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
             GameProjection = chessgameProjection;
@@ -233,28 +232,39 @@ namespace VnodeTest.Chess
 
         private VNode RenderBoard()
         {
-            //TODO: maybe rework
-            VNode board = GetBoardVNode(Gameboard, Game.Lastmove);
-
-            return Div(
-                !Game.Winner.HasValue
-                    ? Text("Surrender", Styles.AbortBtn & Styles.MP4, () =>
+            void SetWinner()
+            {
+                if (PlayerColor == PieceColor.Black)
+                    Game.Winner = PieceColor.White;
+                else
+                    Game.Winner = PieceColor.Black;
+            }
+            VNode SurrenderOrClose()
+            {
+                if (!Game.Winner.HasValue)
+                    return Text("Surrender", Styles.AbortBtn & Styles.MP4, () =>
                     {
-                        if (PlayerColor == PieceColor.Black)
-                            Game.Winner = PieceColor.White;
-                        else
-                            Game.Winner = PieceColor.Black;
+                        SetWinner();
                         Chessgame.Commands.EndGame(GameID, Allmoves());
-                    })
-                    : Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
+                    });
+                else
+                    return Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
                     {
                         Game = default;
                         RenderMode = Rendermode.Gameboard;
-                    }),
+                    });
+            }
+            VNode board = GetBoardVNode(Gameboard, Game.Lastmove);
+
+            return Div(
+                //top of the gameboard
+                SurrenderOrClose(),
+                //right side of gameboard
                 Row(
                     Div(SelectedPreviousMove.Board != null ? GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove) : board),
                     Div(Text("Pause", Styles.AbortBtn & Styles.MP4, PauseGame), RenderPreviousMoves())
                 ),
+                //below gameboard
                 Game.PlayedByEngine.B == true || Game.PlayedByEngine.W == true ? Text($"EngineMove: {Enginemove}") : null,
                 Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
                 Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),

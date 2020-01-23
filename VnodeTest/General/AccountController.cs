@@ -72,7 +72,6 @@ namespace VnodeTest.General
                 {
                     if (!AccountProjection.Accounts.Select(x => x.Username).Contains(Username))
                     {
-                        //TODO: try catch so accountcreation doesnt go through#
                         try 
                         { 
                         Account.Commands.RegisterAccount(ACL.ES.AggregateID<Account>.Create(), Username, Password);

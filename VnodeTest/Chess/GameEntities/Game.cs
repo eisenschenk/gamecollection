@@ -17,7 +17,6 @@ namespace VnodeTest
     {
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
-        //TODO: hasopenspots needs to be accessable for the clokcs, maybe need chessprojection here?       
         public ChessBoard ChessBoard { get; private set; }
         public ChessgameProjection ChessgameProjection { get; }
         public (bool W, bool B) PlayedByEngine { get; set; }
