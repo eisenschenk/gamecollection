@@ -14,35 +14,41 @@ using VnodeTest.GameEntities;
 using static ACL.UI.React.DOM;
 using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
 using VnodeTest.Chess;
+using System.Threading;
 
 namespace VnodeTest.Chess
 {
-    public class PlayVsFriendController
+    public class GameSelectionController
     {
-        public Game Game;
+        private GameID GameID => GameProjection.GetGameID(AccountEntry.ID);
+        private Game Game => GameProjection[GameID]?.Game;
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
         private readonly ChessgameProjection GameProjection;
         private AccountEntry AccountEntry;
-        private GameID GameID;
-        private Rendermode RenderMode;
+        public Rendermode RenderMode { get; private set; }
         private RenderClockTimer RenderClockTimerMode;
+        private PieceColor PlayerColor => GameProjection.GetPlayerColor(AccountEntry.ID);
 
-        public Chessgame Chessgame { get; }
-        public ChessgameProjection ChessgameProjection { get; }
-
-        public PlayVsFriendController(AccountEntry accountEntry, Chessgame chessgame, FriendshipProjection friendshipProjection, AccountProjection accountProjection, ChessgameProjection chessgameProjection)
+        public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection, ChessgameProjection chessgameProjection)
         {
             AccountEntry = accountEntry;
-            Chessgame = chessgame;
             FriendshipProjection = friendshipProjection;
             AccountProjection = accountProjection;
-            ChessgameProjection = chessgameProjection;
+            GameProjection = chessgameProjection;
         }
 
         public VNode Render()
         {
-            return Div();
+            var challenges = GameProjection.Games.Where(x => x.Receiver == AccountEntry.ID);
+
+            if (challenges.Any() && Game == default)
+                return RenderChallenges(challenges);
+            if (RenderMode == Rendermode.PlayFriend)
+                return RenderChallengeFriend();
+            if (GameID == default)
+                return RenderGameModeSelection();
+                return RenderWaitingRoom();
         }
 
         private VNode RenderGameModeSelection()
@@ -72,23 +78,21 @@ namespace VnodeTest.Chess
 
         private void SelectGameMode(Gamemode gamemode, double clocktimer = 0)
         {
+            var gID = GameID.Create();
             RenderClockTimerMode = RenderClockTimer.Default;
-            GameID = GameID.Create();
-            Chessgame.Commands.OpenGame(GameID, gamemode, clocktimer);
-            Game = GameProjection[GameID].Game;
-            Chessgame.Commands.JoinGame(GameID, AccountEntry.ID);
-
-            Game.ChessBoard Engine = new EngineControl();
-            PlayerColor = PieceColor.White;
+            Chessgame.Commands.OpenGame(gID, gamemode, clocktimer);
+            Chessgame.Commands.JoinGame(gID, AccountEntry.ID);
+            RenderMode = Rendermode.Gameboard;
+            Game.Engine = new EngineControl();
             //EvE loop
             if (gamemode == Gamemode.EvE)
                 ThreadPool.QueueUserWorkItem(o =>
                 {
                     while (!Game.GameOver)
                     {
-                        while (Pause)
+                        while (Game.Pause)
                             Thread.Sleep(100);
-                        Game.TryEngineMove(Enginemove = Engine.GetEngineMove(Game.GetFeNotation()), Game.PlayedByEngine);
+                        Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()), Game.PlayedByEngine);
                     }
                 });
         }
@@ -99,11 +103,7 @@ namespace VnodeTest.Chess
             var activeGame = GameProjection.Games.Where(g => g.PlayerWhite == AccountEntry.ID && !g.Closed).FirstOrDefault();
             //action if challenge was accepted 
             if (activeGame != default)
-            {
-                Game = GameProjection[GameID].Game;
-                PlayerColor = PieceColor.White;
                 RenderMode = Rendermode.Gameboard;
-            }
             //waiting for anyone to accept challenge
             return Div(
                 Fragment(challenges.Select(c =>
@@ -116,24 +116,18 @@ namespace VnodeTest.Chess
                             : null
                     )
                 )),
-                Text("back", Styles.Btn & Styles.MP4, () => { Game = null; RenderMode = Rendermode.Gameboard; })
+                Text("back", Styles.Btn & Styles.MP4, () => { RenderMode = Rendermode.Gameboard; })
             );
         }
 
-        private VNode RenderChallenges(IEnumerable<BC.Chess.Game.GameEntry> challenges)
+        private VNode RenderChallenges(IEnumerable<GameEntry> challenges)
         {
             return Div(
                 Fragment(challenges.Select(c =>
                       Row(
                           Text(AccountProjection[c.Challenger].Username),
-                          Text("Accept", Styles.Btn & Styles.MP4, () =>
-                          {
-                              Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver);
-                              GameID = c.ID;
-                              Game = GameProjection[GameID].Game;
-                              PlayerColor = PieceColor.Black;
-                          }),
-                          Text("Deny", Styles.Btn & Styles.MP4, () => BC.Chess.Game.Chessgame.Commands.DenyChallenge(c.ID))
+                          Text("Accept", Styles.Btn & Styles.MP4, () => Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver)),
+                          Text("Deny", Styles.Btn & Styles.MP4, () => Chessgame.Commands.DenyChallenge(c.ID))
                       )
                 )));
         }
@@ -146,16 +140,16 @@ namespace VnodeTest.Chess
             if (friends != default)
                 return Div(
                     Fragment(friends.Select(f =>
-                            Row(
-                                Text(f.Username),
-                                Text("Challenge", Styles.Btn & Styles.MP4, () => RenderClockTimerMode = RenderClockTimer.PvF),
-                                RenderClockTimerMode == RenderClockTimer.PvF
-                                    ? Row(
-                                        Text("normal", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 3600)),
-                                        Text("blitz", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 300)),
-                                        Text("bullet", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 120)))
-                                    : null
-                            )
+                        Row(
+                            Text(f.Username),
+                            Text("Challenge", Styles.Btn & Styles.MP4, () => RenderClockTimerMode = RenderClockTimer.PvF),
+                            RenderClockTimerMode == RenderClockTimer.PvF
+                                ? Row(
+                                    Text("normal", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 3600)),
+                                    Text("blitz", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 300)),
+                                    Text("bullet", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 120)))
+                                : null
+                        )
                     )),
                     back
                 );
@@ -167,11 +161,8 @@ namespace VnodeTest.Chess
 
         private void ChallengeFriend(AccountEntry accountEntry, double clocktimer)
         {
-            GameID = GameID.Create();
-            Chessgame.Commands.OpenGame(GameID, Gamemode.PvF, clocktimer);
+            Chessgame.Commands.OpenGame(GameID.Create(), Gamemode.PvF, clocktimer);
             Chessgame.Commands.RequestChallenge(GameID, AccountEntry.ID, accountEntry.ID);
-            Game = GameProjection[GameID].Game;
-            PlayerColor = PieceColor.White;
             RenderMode = Rendermode.WaitingForChallenged;
             RenderClockTimerMode = RenderClockTimer.Default;
         }

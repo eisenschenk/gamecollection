@@ -22,23 +22,21 @@ namespace VnodeTest.Chess
 {
     public class ChessController
     {
-        public Game Game { get; private set; }
+        private GameID GameID => GameProjection.GetGameID(AccountEntry.ID);
+        public Game Game => GameID != default ? GameProjection[GameID].Game : default;
         private ChessBoard Gameboard => Game?.ChessBoard;
         private VNode RefreshReference;
-        private PieceColor PlayerColor;
-        private IEngine Engine;
-        private string Enginemove;
+        private PieceColor PlayerColor => GameProjection.GetPlayerColor(AccountEntry.ID);
         private Piece Selected;
+        //TODO: rework
         private Piece[] PromotionSelect = new Piece[4];
         private (ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) SelectedPreviousMove;
-        private bool Pause;
         private Rendermode RenderMode;
-        private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
+        //private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
-        private readonly ChessgameProjection GameProjection;
+        public ChessgameProjection GameProjection { get; set; }
         private AccountEntry AccountEntry;
-        private GameID GameID;
 
         //TODO: maybe put challenge friend etc in its own controller -> playfriendcontroller
         public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
@@ -51,7 +49,7 @@ namespace VnodeTest.Chess
             {
                 while (true)
                 {
-                    while (Pause)
+                    while (Game != default ? Game.Pause : false)
                         Thread.Sleep(100);
                     Thread.Sleep(100);
                     Game?.UpdateClocks();
@@ -67,150 +65,10 @@ namespace VnodeTest.Chess
 
         private VNode RenderGameBoard()
         {
-            var challenges = GameProjection.Games.Where(x => x.Receiver == AccountEntry.ID);
-            if (challenges.Any() && Game == default)
-                return RenderChallenges(challenges);
-            if (RenderMode == Rendermode.PlayFriend)
-                return RenderChallengeFriend();
-            if (Gameboard == default)
-                return RenderGameModeSelection();
-            if (Game.IsPromotable && PlayerColor != Game.CurrentPlayerColor)
+            if (Game != default && Game.IsPromotable && PlayerColor != Game.CurrentPlayerColor)
                 return RenderPromotionSelection();
-            if (RenderMode == Rendermode.WaitingForChallenged)
-                return RenderWaitingRoom();
             return RenderBoard();
 
-        }
-
-        private VNode RenderGameModeSelection()
-        {
-            VNode SelectMode(string buttontext, Gamemode gamemode, RenderClockTimer renderClockTimer)
-            {
-                return Row(
-                       Text(buttontext, Styles.Btn & Styles.MP4, () => RenderClockTimerMode = renderClockTimer),
-                       RenderClockTimerMode == renderClockTimer ? RenderClockTimerSelection(gamemode) : null
-                );
-            }
-            return Div(
-                SelectMode("Player vs. AI Start", Gamemode.PvE, RenderClockTimer.PvE),
-                SelectMode("AI vs. AI Start", Gamemode.EvE, RenderClockTimer.EvE),
-                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = Rendermode.PlayFriend)
-            );
-        }
-
-        private VNode RenderClockTimerSelection(Gamemode gamemode)
-        {
-            return Row(
-                Text("normal", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 3600)),
-                Text("blitz", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 500)),
-                Text("bullet", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 250))
-            );
-        }
-
-        private void SelectGameMode(Gamemode gamemode, double clocktimer = 0)
-        {
-            RenderClockTimerMode = RenderClockTimer.Default;
-            GameID = GameID.Create();
-            Chessgame.Commands.OpenGame(GameID, gamemode, clocktimer);
-            Game = GameProjection[GameID].Game;
-            Chessgame.Commands.JoinGame(GameID, AccountEntry.ID);
-
-            Engine = new EngineControl();
-            PlayerColor = PieceColor.White;
-            //EvE loop
-            if (gamemode == Gamemode.EvE)
-                ThreadPool.QueueUserWorkItem(o =>
-                {
-                    while (!Game.GameOver)
-                    {
-                        while (Pause)
-                            Thread.Sleep(100);
-                        Game.TryEngineMove(Enginemove = Engine.GetEngineMove(Game.GetFeNotation()), Game.PlayedByEngine);
-                    }
-                });
-        }
-
-        private VNode RenderWaitingRoom()
-        {
-            var challenges = GameProjection.Games.Where(g => g.Challenger == AccountEntry.ID);
-            var activeGame = GameProjection.Games.Where(g => g.PlayerWhite == AccountEntry.ID && !g.Closed).FirstOrDefault();
-            //action if challenge was accepted 
-            if (activeGame != default)
-            {
-                Game = GameProjection[GameID].Game;
-                PlayerColor = PieceColor.White;
-                RenderMode = Rendermode.Gameboard;
-            }
-            //waiting for anyone to accept challenge
-            return Div(
-                Fragment(challenges.Select(c =>
-                    Div(
-                        GameProjection[c.ID].HasOpenSpots && c.Created.AddSeconds(c.Timer) > DateTime.Now
-                            ? Row(
-                                Text($"Waiting for Friend: {c.Timer - c.Elapsed.Seconds}"),
-                                Text("Abort Challenge!", Styles.AbortBtn & Styles.MP4, () => BC.Chess.Game.Chessgame.Commands.DenyChallenge(c.ID))
-                            )
-                            : null
-                    )
-                )),
-                Text("back", Styles.Btn & Styles.MP4, () => { Game = null; RenderMode = Rendermode.Gameboard; })
-            );
-        }
-
-        private VNode RenderChallenges(IEnumerable<BC.Chess.Game.GameEntry> challenges)
-        {
-            return Div(
-                Fragment(challenges.Select(c =>
-                      Row(
-                          Text(AccountProjection[c.Challenger].Username),
-                          Text("Accept", Styles.Btn & Styles.MP4, () =>
-                          {
-                              Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver);
-                              GameID = c.ID;
-                              Game = GameProjection[GameID].Game;
-                              PlayerColor = PieceColor.Black;
-                          }),
-                          Text("Deny", Styles.Btn & Styles.MP4, () => BC.Chess.Game.Chessgame.Commands.DenyChallenge(c.ID))
-                      )
-                )));
-        }
-
-        private VNode RenderChallengeFriend()
-        {
-            var friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(id => AccountProjection[id.AccountID]);
-            VNode back = Text("back", Styles.Btn & Styles.MP4, () => RenderMode = Rendermode.Gameboard);
-
-            if (friends != default)
-                return Div(
-                    Fragment(friends.Select(f =>
-                            Row(
-                                Text(f.Username),
-                                Text("Challenge", Styles.Btn & Styles.MP4, () => RenderClockTimerMode = RenderClockTimer.PvF),
-                                RenderClockTimerMode == RenderClockTimer.PvF
-                                    ? Row(
-                                        Text("normal", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 3600)),
-                                        Text("blitz", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 300)),
-                                        Text("bullet", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 120)))
-                                    : null
-                            )
-                    )),
-                    back
-                );
-            return Div(
-                Text("no friends -_-'"),
-                back
-            );
-        }
-
-        private void ChallengeFriend(AccountEntry accountEntry, double clocktimer)
-        {
-            GameID = GameID.Create();
-            Chessgame.Commands.OpenGame(GameID, Gamemode.PvF, clocktimer);
-            Chessgame.Commands.RequestChallenge(GameID, AccountEntry.ID, accountEntry.ID);
-            Game = GameProjection[GameID].Game;
-            PlayerColor = PieceColor.White;
-            RenderMode = Rendermode.WaitingForChallenged;
-            RenderClockTimerMode = RenderClockTimer.Default;
         }
 
         private VNode GetBoardVNode(ChessBoard gameboard, (Piece start, (int X, int Y) target) lastmove)
@@ -250,11 +108,10 @@ namespace VnodeTest.Chess
                 else
                     return Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
                     {
-                        Game = default;
                         RenderMode = Rendermode.Gameboard;
                     });
             }
-            VNode board = GetBoardVNode(Gameboard, Game.Lastmove);
+            var board = GetBoardVNode(Gameboard, Game.Lastmove);
 
             return Div(
                 //top of the gameboard
@@ -265,7 +122,7 @@ namespace VnodeTest.Chess
                     Div(Text("Pause", Styles.AbortBtn & Styles.MP4, PauseGame), RenderPreviousMoves())
                 ),
                 //below gameboard
-                Game.PlayedByEngine.B == true || Game.PlayedByEngine.W == true ? Text($"EngineMove: {Enginemove}") : null,
+                Game.PlayedByEngine.B == true || Game.PlayedByEngine.W == true ? Text($"EngineMove: {Game.Enginemove}") : null,
                 Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
                 Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
                 Text($"Gameroom: {Game.ID}"),
@@ -286,9 +143,9 @@ namespace VnodeTest.Chess
 
         private void PauseGame()
         {
-            Pause = !Pause;
+            Game.Pause = !Game.Pause;
         }
-
+        //TODO: implement castling moves into trymove maybe
         private VNode RenderPreviousMoves()
         {
             void SelectForRender((ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) move)
@@ -299,7 +156,7 @@ namespace VnodeTest.Chess
                 else
                     SelectedPreviousMove = move;
             }
-            return Fragment(Game.Moves.Select(g =>
+            return Fragment(Game.Moves.ToArray().Select(g =>
                 Game.Moves.IndexOf(g) >= 1
                     ? Text($"Show {Gameboard.ParseToAN(g.LastMove.start, g.LastMove.target, Game.Moves[Game.Moves.IndexOf(g) - 1].Board)}",
                         Styles.MP4 & (SelectedPreviousMove == g ? Styles.SelectedBtn : Styles.Btn),
@@ -441,9 +298,9 @@ namespace VnodeTest.Chess
                     ThreadPool.QueueUserWorkItem(o =>
                     {
                         if (Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black)
-                            Game.TryEngineMove(Enginemove = Engine.GetEngineMove(Game.GetFeNotation()));
+                            Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
                         else if (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White)
-                            Game.TryEngineMove(Enginemove = Engine.GetEngineMove(Game.GetFeNotation()));
+                            Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
                     });
                 }
             }

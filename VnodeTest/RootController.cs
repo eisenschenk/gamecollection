@@ -6,6 +6,8 @@ using VnodeTest.General;
 using VnodeTest.Chess;
 using VnodeTest.BC.General.Account;
 using static ACL.UI.React.DOM;
+using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
+
 
 
 namespace VnodeTest
@@ -15,11 +17,12 @@ namespace VnodeTest
         private readonly Session Session;
         public AccountEntry AccountEntry { get; set; }
         private Func<VNode> CurrentContent;
+        private GameID GameID => ChessController.GameProjection.GetGameID(AccountEntry.ID);
 
         private VNode RenderSideMenu()
         {
             return Div(
-                Text("Play Game", Styles.Btn & Styles.MP4, () => CurrentContent = ChessController.Render),
+                Text("Play Game", Styles.Btn & Styles.MP4, () => CurrentContent = GameSelectionController.Render),
                 Text("Friends", Styles.Btn & Styles.MP4, () => CurrentContent = FriendshipController.Render)
             );
         }
@@ -29,8 +32,18 @@ namespace VnodeTest
             Session = session;
         }
 
-        public VNode Render() => AccountEntry == null ? LoginController.Render(this) : Row(RenderSideMenu(), CurrentContent?.Invoke());
+        public VNode Render()
+        {
+            if (AccountEntry == null)
+                return LoginController.Render(this);
 
+            if (GameSelectionController.RenderMode == Rendermode.Gameboard)
+                CurrentContent = ChessController.Render;
+            return Row(
+                RenderSideMenu(),
+                CurrentContent?.Invoke()
+            );
+        }
 
         private ChessController _ChessController;
         private ChessController ChessController =>
@@ -46,6 +59,10 @@ namespace VnodeTest
         private FriendshipController _FriendshipController;
         private FriendshipController FriendshipController =>
             _FriendshipController ??= ((Application)Application.Instance).GeneralContext.CreateFriendshipController(AccountEntry);
+
+        private GameSelectionController _GameSelectionController;
+        private GameSelectionController GameSelectionController =>
+            _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry);
     }
 
 }

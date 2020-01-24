@@ -67,7 +67,11 @@ namespace VnodeTest.Chess.GameEntities
             if (TryCastling(start, target, out chessBoard, game))
                 return true;
             //checking if target is a valid move for the startpiece
-            if (!start.GetValidMovements(this).Contains(target))
+
+            var validmoves = start.GetValidMovements(this);
+            if (start is King)
+                validmoves = validmoves.Concat(((King)start).GetCastlingPositions(chessBoard));
+            if (!validmoves.Contains(target))
                 return false;
             //movecounter for official counting of halfmoves (pawn moved or piece is captured resets the counter)
             if (this[target] != null || start is Pawn)
@@ -187,9 +191,9 @@ namespace VnodeTest.Chess.GameEntities
             return $"{pieceLetter}{source}{capturePiece}{targetX}{targetY}{promotionLetter}{check}";
         }
 
-        public bool CheckMateDetection(ChessBoard gameboard, PieceColor color)
+        public static bool CheckMateDetection(ChessBoard gameboard, PieceColor color)
         {
-            foreach (Piece piece in Board.Where(t => t != null && t.Color == color))
+            foreach (Piece piece in gameboard.Board.Where(t => t != null && t.Color == color))
                 if (piece.GetValidMovements(gameboard).Any())
                     return false;
             return true;

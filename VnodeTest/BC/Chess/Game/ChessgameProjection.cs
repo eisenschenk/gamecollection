@@ -35,7 +35,7 @@ namespace VnodeTest.BC.Chess.Game
                             Chessgame.Commands.DeleteGame(entry.ID);
             });
         }
-
+#pragma warning disable IDE0051
         private void On(GameOpened @event)
         {
             Dict.Add(@event.ID, new GameEntry(@event.ID, @event.Gamemode, this, @event.Clocktimer));
@@ -79,6 +79,19 @@ namespace VnodeTest.BC.Chess.Game
                 entry.PlayerWhite = @event.AccountID;
             else
                 entry.PlayerBlack = @event.AccountID;
+        }
+#pragma warning restore
+        public GameID GetGameID(AccountID accountID)
+        {
+            return Dict.Values.Where(a => !a.Closed && (a.PlayerWhite == accountID || a.PlayerBlack == accountID)).FirstOrDefault()?.ID ?? default;
+        }
+
+        public PieceColor GetPlayerColor(AccountID accountID)
+        {
+            var game = Dict.Values.Where(c => !c.Closed && (c.PlayerWhite == accountID || c.PlayerBlack == accountID)).FirstOrDefault();
+            if (game != null)
+                return game.PlayerWhite == accountID ? PieceColor.White : PieceColor.Black;
+            return PieceColor.Default;
         }
     }
 

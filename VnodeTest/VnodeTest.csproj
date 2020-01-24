@@ -117,7 +117,7 @@
     <Compile Include="Chess\Rendermode.cs" />
     <Compile Include="General\FriendshipController.cs" />
     <Compile Include="General\Passwordhelper.cs" />
-    <Compile Include="Chess\PlayVsFriendController.cs" />
+    <Compile Include="Chess\GameSelectionController.cs" />
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="General\AccountController.cs" />

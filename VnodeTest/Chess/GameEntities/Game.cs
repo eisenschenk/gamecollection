@@ -17,6 +17,9 @@ namespace VnodeTest
     {
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
+        public bool Pause { get; set; }
+        public IEngine Engine { get; set; }
+        public string Enginemove { get; set; }
         public ChessBoard ChessBoard { get; private set; }
         public ChessgameProjection ChessgameProjection { get; }
         public (bool W, bool B) PlayedByEngine { get; set; }
@@ -115,7 +118,7 @@ namespace VnodeTest
             var c = input[input.Length - 1];
             if (c < '1' || c > '8')
                 throw new Exception("out of bounds Y");
-            return 7 -  Math.Abs(56 - c);
+            return 7 - Math.Abs(56 - c);
         }
 
         public string GetFeNotation()
@@ -178,15 +181,16 @@ namespace VnodeTest
             string CheckCastle((int X, int Y) king, (int X, int Y) rook, bool kingside = default)
             {
                 string _output = string.Empty;
-                bool white = ChessBoard.Board[king].Color == PieceColor.White;
                 if (ChessBoard.Board[rook] != null && !ChessBoard.Board[rook].HasMoved
                     && ChessBoard.Board[king] != null && !ChessBoard.Board[king].HasMoved)
+                {
+                    bool white = ChessBoard.Board[king].Color == PieceColor.White;
                     return kingside switch
                     {
                         true => white ? "K" : "k",
                         false => white ? "Q" : "q"
                     };
-
+                }
                 return _output;
             }
             string output = CheckCastle((4, 7), (7, 7), true);

@@ -17,10 +17,10 @@ namespace VnodeTest.GameEntities
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
         {
-            return GetDiagonals(gameboard, 1).Concat(GetStraightLines(gameboard, 1)).Concat(GetCastlingPositions(gameboard));
+            return GetDiagonals(gameboard, 1).Concat(GetStraightLines(gameboard, 1));
         }
 
-        private IEnumerable<(int X, int Y)> GetCastlingPositions(ChessBoard gameboard)
+        public IEnumerable<(int X, int Y)> GetCastlingPositions(ChessBoard gameboard)
         {
             bool EmptyAndNoCheck(int direction, Piece rookTile)
             {

@@ -26,6 +26,7 @@ namespace VnodeTest.BC.General.Friendships
         public FriendshipProjection(IEventStore store, IMessageBus bus) : base(store, bus)
         {
         }
+#pragma warning disable IDE0051
         private void On(FriendRequestAccepted @event)
         {
             var friendship = Dict[@event.ID];
@@ -58,7 +59,7 @@ namespace VnodeTest.BC.General.Friendships
             Dict.Remove(@event.ID);
             DeleteAccountFriendRequest(friendship.Receiver, @event.ID);
         }
-
+#pragma warning restore
         private void AddAccountFriendRequest(AccountID accountID, FriendshipEntry friendship)
         {
             if (!AccountFriendRequests.TryGetValue(accountID, out var friendships))

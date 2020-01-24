@@ -86,7 +86,6 @@ namespace VnodeTest.Chess.GameEntities
                 distance--;
             }
         }
-
         public IEnumerable<(int X, int Y)> GetValidMovements(ChessBoard gameboard)
         {
             return GetPotentialMovements(gameboard).Where(m =>
