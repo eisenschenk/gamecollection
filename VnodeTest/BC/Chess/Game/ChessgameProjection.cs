@@ -18,7 +18,7 @@ namespace VnodeTest.BC.Chess.Game
     {
         private readonly Dictionary<GameID, GameEntry> Dict = new Dictionary<GameID, GameEntry>();
 
-        public GameEntry this[GameID id] => Dict[id];
+        public GameEntry this[GameID id] => id != default ? Dict[id] : null;
         public IEnumerable<GameEntry> Games => Dict.Values;
 
         public ChessgameProjection(IEventStore store, IMessageBus bus) : base(store, bus)
@@ -67,6 +67,7 @@ namespace VnodeTest.BC.Chess.Game
         {
             Dict[@event.ID].AllMoves = @event.Moves;
             Dict[@event.ID].Closed = true;
+            Dict[@event.ID].ClosedTimestamp = DateTime.Now;
         }
         private void On(ChallengeDenied @event)
         {
@@ -86,24 +87,37 @@ namespace VnodeTest.BC.Chess.Game
             return Dict.Values.Where(a => !a.Closed && (a.PlayerWhite == accountID || a.PlayerBlack == accountID)).FirstOrDefault()?.ID ?? default;
         }
 
-        public PieceColor GetPlayerColor(AccountID accountID)
+        public PieceColor GetOpenGamePlayerColor(AccountID accountID)
         {
             var game = Dict.Values.Where(c => !c.Closed && (c.PlayerWhite == accountID || c.PlayerBlack == accountID)).FirstOrDefault();
             if (game != null)
                 return game.PlayerWhite == accountID ? PieceColor.White : PieceColor.Black;
             return PieceColor.Default;
         }
+
+        public PieceColor GetSpecificPlayerColor(AccountID accountID, VnodeTest.Game game)
+        {
+            return Dict[game.ID].PlayerBlack == accountID ? PieceColor.White : PieceColor.Black;
+        }
+
+        public VnodeTest.Game GetLastPlayedGame(AccountID accountID)
+        {
+            var timenow = DateTime.Now;
+            var gameID = Dict.Values.Where(g => (g.PlayerBlack == accountID || g.PlayerWhite == accountID) && g.Closed)
+                .OrderBy(o => timenow - o.ClosedTimestamp).FirstOrDefault().ID;
+            return gameID != default ? Dict[gameID].Game : default;
+        }
     }
 
 
     public class GameEntry
     {
-        //TODO: move chesscontroller variables into gameentry, try to get everything by accessing the projection
         public GameID ID { get; }
         public Gamemode Gamemode { get; }
         public string AllMoves;
         public bool LoggedIn;
         public DateTime Created = DateTime.Now;
+        public DateTime ClosedTimestamp;
         public int Timer = 30;
         public TimeSpan Elapsed => DateTime.Now - Created;
         public AccountID Challenger { get; set; }

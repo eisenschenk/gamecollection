@@ -23,10 +23,11 @@ namespace VnodeTest.Chess
     public class ChessController
     {
         private GameID GameID => GameProjection.GetGameID(AccountEntry.ID);
-        public Game Game => GameID != default ? GameProjection[GameID].Game : default;
+        public Game Game => GetCurrentGame();
+        private Game LastGame;
         private ChessBoard Gameboard => Game?.ChessBoard;
         private VNode RefreshReference;
-        private PieceColor PlayerColor => GameProjection.GetPlayerColor(AccountEntry.ID);
+        private PieceColor PlayerColor => GameProjection.GetSpecificPlayerColor(AccountEntry.ID, Game);
         private Piece Selected;
         //TODO: rework
         private Piece[] PromotionSelect = new Piece[4];
@@ -38,7 +39,6 @@ namespace VnodeTest.Chess
         public ChessgameProjection GameProjection { get; set; }
         private AccountEntry AccountEntry;
 
-        //TODO: maybe put challenge friend etc in its own controller -> playfriendcontroller
         public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
             GameProjection = chessgameProjection;
@@ -56,6 +56,13 @@ namespace VnodeTest.Chess
                     RefreshReference?.Refresh();
                 }
             });
+        }
+
+        private Game GetCurrentGame()
+        {
+            if (GameID != default)
+                LastGame = GameProjection[GameID].Game;
+            return LastGame;
         }
 
         public VNode Render()
@@ -85,7 +92,9 @@ namespace VnodeTest.Chess
                     .Select(row => Row(gameboard.Board
                         .Skip(rowSize * row)
                         .Take(rowSize)
-                        .Select((p, col) => RenderTile(p, col, row, lastmove)))));
+                        .Select((p, col) => RenderTile(p, col, row, lastmove))
+                        .Reverse()))
+                    );
         }
 
         private VNode RenderBoard()
@@ -109,9 +118,17 @@ namespace VnodeTest.Chess
                     return Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
                     {
                         RenderMode = Rendermode.Gameboard;
+                        LastGame = null;
                     });
             }
-            var board = GetBoardVNode(Gameboard, Game.Lastmove);
+            VNode board;
+            if (Game != null)
+                board = GetBoardVNode(Gameboard, Game.Lastmove);
+            else
+            {
+                var lastgame = GameProjection.GetLastPlayedGame(AccountEntry.ID);
+                board = GetBoardVNode(lastgame.ChessBoard, lastgame.Lastmove);
+            }
 
             return Div(
                 //top of the gameboard
@@ -145,7 +162,6 @@ namespace VnodeTest.Chess
         {
             Game.Pause = !Game.Pause;
         }
-        //TODO: implement castling moves into trymove maybe
         private VNode RenderPreviousMoves()
         {
             void SelectForRender((ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) move)

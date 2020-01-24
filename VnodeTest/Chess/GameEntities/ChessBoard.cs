@@ -10,7 +10,6 @@ namespace VnodeTest.Chess.GameEntities
     public class ChessBoard
     {
         //TODO: my notaion -> AN implemented, AN -> my notation not implemented 
-        //TODO: still dont like trymove...
         public ImmutableBoard Board { get; }
         public (int X, int Y) EnPassantTarget { get; }
 
