@@ -42,10 +42,10 @@ namespace VnodeTest
             ChessHandler = new Chessgame.Handler(Repository, bus);
         }
         //mehrere controller und friendships& play vs friend in anderen controller
-        public ChessController CreateChessController(AccountEntry accountEntry) =>
-            new ChessController(accountEntry, ((Application)Application.Instance).GeneralContext.AccountProjection, ChessProjection, ((Application)Application.Instance).GeneralContext.FriendshipProjection);
+        public ChessController CreateChessController(AccountEntry accountEntry, RootController rootController) =>
+            new ChessController(accountEntry, ((Application)Application.Instance).GeneralContext.AccountProjection, ChessProjection, ((Application)Application.Instance).GeneralContext.FriendshipProjection, rootController);
 
-        public GameSelectionController CreateGameSelectionController(AccountEntry accountEntry) =>
-            new GameSelectionController(accountEntry, ((Application)Application.Instance).GeneralContext.FriendshipProjection, ((Application)Application.Instance).GeneralContext.AccountProjection, ChessProjection);
+        public GameSelectionController CreateGameSelectionController(AccountEntry accountEntry, RootController rootController) =>
+            new GameSelectionController(accountEntry, ((Application)Application.Instance).GeneralContext.FriendshipProjection, ((Application)Application.Instance).GeneralContext.AccountProjection, ChessProjection, rootController);
     }
 }

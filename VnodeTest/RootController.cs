@@ -18,12 +18,13 @@ namespace VnodeTest
         public AccountEntry AccountEntry { get; set; }
         private Func<VNode> CurrentContent;
         private GameID GameID => ChessController.GameProjection.GetGameID(AccountEntry.ID);
+        public Rendermode Rendermode { get; set; } = Rendermode.Default;
 
         private VNode RenderSideMenu()
         {
             return Div(
-                Text("Play Game", Styles.Btn & Styles.MP4, () => CurrentContent = GameSelectionController.Render),
-                Text("Friends", Styles.Btn & Styles.MP4, () => CurrentContent = FriendshipController.Render)
+                Text("Play Game", Styles.Btn & Styles.MP4, () => Rendermode = GameID == default ? Rendermode.GameSelection : Rendermode.Gameboard),
+                Text("Friends", Styles.Btn & Styles.MP4, () => Rendermode = Rendermode.Friendcontroller)
             );
         }
 
@@ -34,11 +35,17 @@ namespace VnodeTest
 
         public VNode Render()
         {
+            //TODO: use rendermethods directly
             if (AccountEntry == null)
                 return LoginController.Render(this);
-
-            if (GameSelectionController.RenderMode == Rendermode.Gameboard)
+            if (Rendermode == Rendermode.Default)
+                CurrentContent = null;
+            if (Rendermode == Rendermode.Gameboard)
                 CurrentContent = ChessController.Render;
+            if (Rendermode == Rendermode.Friendcontroller)
+                CurrentContent = FriendshipController.Render;
+            if (Rendermode == Rendermode.GameSelection)
+                CurrentContent = GameSelectionController.Render;
             return Row(
                 RenderSideMenu(),
                 CurrentContent?.Invoke()
@@ -48,7 +55,7 @@ namespace VnodeTest
         private ChessController _ChessController;
         private ChessController ChessController =>
         _ChessController ??
-        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry));
+        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry, this));
 
 
         private AccountController _LoginController;
@@ -62,7 +69,7 @@ namespace VnodeTest
 
         private GameSelectionController _GameSelectionController;
         private GameSelectionController GameSelectionController =>
-            _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry);
+            _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry, this);
     }
 
 }

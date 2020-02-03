@@ -84,7 +84,7 @@ namespace VnodeTest.BC.Chess.Game
 #pragma warning restore
         public GameID GetGameID(AccountID accountID)
         {
-            return Dict.Values.Where(a => !a.Closed && (a.PlayerWhite == accountID || a.PlayerBlack == accountID)).FirstOrDefault()?.ID ?? default;
+            return Dict.Values.ToArray().Where(a => !a.Closed && (a.PlayerWhite == accountID || a.PlayerBlack == accountID)).FirstOrDefault()?.ID ?? default;
         }
 
         public PieceColor GetOpenGamePlayerColor(AccountID accountID)
@@ -97,7 +97,9 @@ namespace VnodeTest.BC.Chess.Game
 
         public PieceColor GetSpecificPlayerColor(AccountID accountID, VnodeTest.Game game)
         {
-            return Dict[game.ID].PlayerBlack == accountID ? PieceColor.White : PieceColor.Black;
+            if (game != default)
+                return Dict[game.ID].PlayerBlack == accountID ? PieceColor.Black : PieceColor.White;
+            return PieceColor.Default;
         }
 
         public VnodeTest.Game GetLastPlayedGame(AccountID accountID)

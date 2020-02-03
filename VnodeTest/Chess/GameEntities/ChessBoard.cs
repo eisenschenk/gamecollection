@@ -22,7 +22,7 @@ namespace VnodeTest.Chess.GameEntities
         {
             Board = PutPiecesInStartingPosition();
         }
-        //@phil
+       
         public ChessBoard(ImmutableBoard board, (int, int) enpassanttarget)
         {
             Board = board;

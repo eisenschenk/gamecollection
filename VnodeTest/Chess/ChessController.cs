@@ -32,17 +32,20 @@ namespace VnodeTest.Chess
         //TODO: rework
         private Piece[] PromotionSelect = new Piece[4];
         private (ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) SelectedPreviousMove;
-        private Rendermode RenderMode;
         //private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
         public ChessgameProjection GameProjection { get; set; }
+        public RootController RootController { get; set; }
+        public Rendermode Rendermode { get; }
+
         private AccountEntry AccountEntry;
 
-        public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
+        public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection, RootController rootController)
         {
             GameProjection = chessgameProjection;
             FriendshipProjection = friendshipProjection;
+            RootController = rootController;
             AccountEntry = accountEntry;
             AccountProjection = accountProjection;
             ThreadPool.QueueUserWorkItem(o =>
@@ -117,8 +120,8 @@ namespace VnodeTest.Chess
                 else
                     return Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
                     {
-                        RenderMode = Rendermode.Gameboard;
-                        LastGame = null;
+                        LastGame = default;
+                        RootController.Rendermode = Rendermode.Default;
                     });
             }
             VNode board;
@@ -139,7 +142,6 @@ namespace VnodeTest.Chess
                     Div(Text("Pause", Styles.AbortBtn & Styles.MP4, PauseGame), RenderPreviousMoves())
                 ),
                 //below gameboard
-                Game.PlayedByEngine.B == true || Game.PlayedByEngine.W == true ? Text($"EngineMove: {Game.Enginemove}") : null,
                 Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
                 Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
                 Text($"Gameroom: {Game.ID}"),

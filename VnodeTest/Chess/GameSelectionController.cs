@@ -27,16 +27,18 @@ namespace VnodeTest.Chess
         private readonly ChessgameProjection GameProjection;
         private AccountEntry AccountEntry;
         private VNode RefreshReference;
-        public Rendermode RenderMode { get; private set; }
         private RenderClockTimer RenderClockTimerMode;
         private PieceColor PlayerColor => GameProjection.GetOpenGamePlayerColor(AccountEntry.ID);
-
-        public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection, ChessgameProjection chessgameProjection)
+        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged }
+        private RendermodeLocal RenderMode;
+        public RootController RootController { get; set; }
+        public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection, ChessgameProjection chessgameProjection, RootController rootController)
         {
             AccountEntry = accountEntry;
             FriendshipProjection = friendshipProjection;
             AccountProjection = accountProjection;
             GameProjection = chessgameProjection;
+            RootController = rootController;
             ThreadPool.QueueUserWorkItem(o =>
             {
                 while (true)
@@ -54,16 +56,19 @@ namespace VnodeTest.Chess
 
         private VNode RenderMain()
         {
-            var challenges = GameProjection.Games.Where(x => x.Receiver == AccountEntry.ID);
+            var challengesFromFriends = GameProjection.Games.Where(g => !g.Closed && g.Receiver == AccountEntry.ID);
+            var challengesFromYou = GameProjection.Games.Where(g => !g.Closed && g.Challenger == AccountEntry.ID);
 
-            if (challenges.Any() && Game == default)
-                return RenderChallenges(challenges);
-            if (RenderMode == Rendermode.PlayFriend)
+            if (challengesFromFriends.Any() && Game == default)
+                return RenderChallenges(challengesFromFriends);
+            if (RenderMode == RendermodeLocal.PlayFriend)
                 return RenderChallengeFriend();
-            if (GameID == default && RenderMode != Rendermode.WaitingForChallenged)
+            if (GameID == default && RenderMode != RendermodeLocal.WaitingForChallenged)
                 return RenderGameModeSelection();
             if (Game != default)
-                RenderMode = Rendermode.Gameboard;
+                RootController.Rendermode = Rendermode.Gameboard;
+            if (!challengesFromYou.Any())
+                RenderMode = RendermodeLocal.Default;
             return RenderWaitingRoom();
         }
 
@@ -79,7 +84,7 @@ namespace VnodeTest.Chess
             return Div(
                 SelectMode("Player vs. AI Start", Gamemode.PvE, RenderClockTimer.PvE),
                 SelectMode("AI vs. AI Start", Gamemode.EvE, RenderClockTimer.EvE),
-                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = Rendermode.PlayFriend)
+                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.PlayFriend)
             );
         }
 
@@ -91,25 +96,25 @@ namespace VnodeTest.Chess
                 Text("bullet", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 250))
             );
         }
-        //TODO: kein watiting room, accrept -> back instead of showing game
-        // suggest complete redo of rendermodes, too confusing
         private void SelectGameMode(Gamemode gamemode, double clocktimer = 0)
         {
             var gID = GameID.Create();
             RenderClockTimerMode = RenderClockTimer.Default;
             Chessgame.Commands.OpenGame(gID, gamemode, clocktimer);
             Chessgame.Commands.JoinGame(gID, AccountEntry.ID);
-            RenderMode = Rendermode.Gameboard;
+            RootController.Rendermode = Rendermode.Gameboard;
             Game.Engine = new EngineControl();
             //EvE loop
             if (gamemode == Gamemode.EvE)
                 ThreadPool.QueueUserWorkItem(o =>
                 {
-                    while (!Game.GameOver)
+                    while (Game != default && !Game.GameOver)
                     {
-                        while (Game.Pause)
+                        var game = Game ?? default;
+                        while (Game?.Pause ?? false)
                             Thread.Sleep(100);
-                        Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()), Game.PlayedByEngine);
+                        if (game != default)
+                            game.TryEngineMove(game.Engine.GetEngineMove(game.GetFeNotation()), game.PlayedByEngine);
                     }
                 });
         }
@@ -117,12 +122,7 @@ namespace VnodeTest.Chess
         private VNode RenderWaitingRoom()
         {
             var challenges = GameProjection.Games.Where(g => g.Challenger == AccountEntry.ID);
-            var activeGame = GameProjection.Games.Where(g => g.PlayerWhite == AccountEntry.ID && !g.Closed).FirstOrDefault();
-            ////action if challenge was accepted 
-            //if (activeGame != default)
-            //    RenderMode = Rendermode.Gameboard;
 
-            //waiting for anyone to accept challenge
             return Div(
                 Fragment(challenges.Select(c =>
                     Div(
@@ -134,13 +134,12 @@ namespace VnodeTest.Chess
                             : null
                     )
                 )),
-                Text("back", Styles.Btn & Styles.MP4, () => { RenderMode = Rendermode.Default; })
+                Text("back", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Default)
             );
         }
 
         private VNode RenderChallenges(IEnumerable<GameEntry> challenges)
         {
-            //TODO modes here
             return Div(
                 Text("Chess Challenges:"),
                 Fragment(challenges.Select(c =>
@@ -155,7 +154,7 @@ namespace VnodeTest.Chess
         private VNode RenderChallengeFriend()
         {
             var friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(id => AccountProjection[id.AccountID]);
-            VNode back = Text("back", Styles.Btn & Styles.MP4, () => RenderMode = Rendermode.Default);
+            VNode back = Text("back", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Default);
 
             if (friends != default)
                 return Div(
@@ -184,7 +183,7 @@ namespace VnodeTest.Chess
             var gID = GameID.Create();
             Chessgame.Commands.OpenGame(gID, Gamemode.PvF, clocktimer);
             Chessgame.Commands.RequestChallenge(gID, AccountEntry.ID, accountEntry.ID);
-            RenderMode = Rendermode.WaitingForChallenged;
+            RenderMode = RendermodeLocal.WaitingForChallenged;
             RenderClockTimerMode = RenderClockTimer.Default;
         }
     }

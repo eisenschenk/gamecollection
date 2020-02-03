@@ -2,8 +2,6 @@
 {
     Default,
     Gameboard,
-    PlayFriend,
-    ChallengeDenied,
-    WaitingForChallenged,
-    SelectClockTimer
+    Friendcontroller,
+    GameSelection,   
 }
