@@ -6,9 +6,9 @@ using VnodeTest.General;
 using VnodeTest.Chess;
 using VnodeTest.BC.General.Account;
 using static ACL.UI.React.DOM;
-using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
-
-
+using ChessGameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
+using SolitaireGameID = ACL.ES.AggregateID<VnodeTest.BC.Solitaire.Solitaire>;
+using VnodeTest.Solitaire;
 
 namespace VnodeTest
 {
@@ -17,13 +17,14 @@ namespace VnodeTest
         private readonly Session Session;
         public AccountEntry AccountEntry { get; set; }
         private Func<VNode> CurrentContent;
-        private GameID GameID => ChessController.GameProjection.GetGameID(AccountEntry.ID);
+        private ChessGameID ChessGameID => ChessController.GameProjection.GetGameID(AccountEntry.ID);
+        private ChessGameID SolitaireGameID = default;
         public Rendermode Rendermode { get; set; } = Rendermode.Default;
 
         private VNode RenderSideMenu()
         {
             return Div(
-                Text("Play Game", Styles.Btn & Styles.MP4, () => Rendermode = GameID == default ? Rendermode.GameSelection : Rendermode.Gameboard),
+                Text("Play", Styles.Btn & Styles.MP4, () => Rendermode = ChessGameID == default && SolitaireGameID == default ? Rendermode.GameSelection : Rendermode.ChessGameboard),
                 Text("Friends", Styles.Btn & Styles.MP4, () => Rendermode = Rendermode.Friendcontroller)
             );
         }
@@ -40,12 +41,14 @@ namespace VnodeTest
                 return LoginController.Render(this);
             if (Rendermode == Rendermode.Default)
                 CurrentContent = null;
-            if (Rendermode == Rendermode.Gameboard)
+            if (Rendermode == Rendermode.ChessGameboard)
                 CurrentContent = ChessController.Render;
             if (Rendermode == Rendermode.Friendcontroller)
                 CurrentContent = FriendshipController.Render;
             if (Rendermode == Rendermode.GameSelection)
                 CurrentContent = GameSelectionController.Render;
+            if (Rendermode == Rendermode.SolitaireGameboard)
+                CurrentContent = SolitaireController.Render;
             return Row(
                 RenderSideMenu(),
                 CurrentContent?.Invoke()
@@ -70,6 +73,10 @@ namespace VnodeTest
         private GameSelectionController _GameSelectionController;
         private GameSelectionController GameSelectionController =>
             _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry, this);
+
+        private SolitaireController _SolitaireController;
+        private SolitaireController SolitaireController =>
+            _SolitaireController ??= ((Application)Application.Instance).SolitaireContext.CreateSolitaireController(AccountEntry.ID);
     }
 
 }

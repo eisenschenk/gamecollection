@@ -95,6 +95,14 @@
     <Compile Include="BC\General\Friendships\Event\FriendshipRequested.cs" />
     <Compile Include="BC\General\Friendships\Friendship.cs" />
     <Compile Include="BC\General\Friendships\FriendshipProjection.cs" />
+    <Compile Include="BC\Solitaire\Command\CloseAllOpenGames.cs" />
+    <Compile Include="BC\Solitaire\Command\EndGame.cs" />
+    <Compile Include="BC\Solitaire\Command\JoinGame.cs" />
+    <Compile Include="BC\Solitaire\Command\OpenGame.cs" />
+    <Compile Include="BC\Solitaire\Event\AllOpenGamesClosed.cs" />
+    <Compile Include="BC\Solitaire\Event\GameEnded.cs" />
+    <Compile Include="BC\Solitaire\Event\GameJoined.cs" />
+    <Compile Include="BC\Solitaire\Event\GameOpened.cs" />
     <Compile Include="BC\Solitaire\Solitaire.cs" />
     <Compile Include="BC\Solitaire\SolitaireProjection.cs" />
     <Compile Include="Chess\ChessContext.cs" />
@@ -130,6 +138,17 @@
     <Compile Include="RootController.cs" />
     <Compile Include="SearchbarComponent.cs" />
     <Compile Include="Session.cs" />
+    <Compile Include="Solitaire\GameEntities\CardStack.cs" />
+    <Compile Include="Solitaire\GameEntities\BaseStack.cs" />
+    <Compile Include="Solitaire\GameEntities\Card.cs" />
+    <Compile Include="Solitaire\GameEntities\CardModel.cs" />
+    <Compile Include="Solitaire\GameEntities\ColorValue.cs" />
+    <Compile Include="Solitaire\GameEntities\Gameboard.cs" />
+    <Compile Include="Solitaire\GameEntities\Foundations.cs" />
+    <Compile Include="Solitaire\GameEntities\FoundationStack.cs" />
+    <Compile Include="Solitaire\GameEntities\PipModel.cs" />
+    <Compile Include="Solitaire\GameEntities\TableauStack.cs" />
+    <Compile Include="Solitaire\GameEntities\Tableau.cs" />
     <Compile Include="Solitaire\SolitaireContext.cs" />
     <Compile Include="Solitaire\SolitaireController.cs" />
     <Compile Include="Styles.cs" />
@@ -145,9 +164,6 @@
       <Name>ACL.ES</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BC\Solitaire\Command\" />
-    <Folder Include="BC\Solitaire\Event\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

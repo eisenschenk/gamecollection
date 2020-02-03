@@ -36,7 +36,6 @@ namespace VnodeTest
         private TimeSpan _BlackClock;
         public TimeSpan BlackClock { get => _BlackClock; private set => _BlackClock = value; }
         private DateTime LastClockUpdate;
-        private bool ResetClocks;
         public readonly List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)> Moves = new List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)>();
 
 

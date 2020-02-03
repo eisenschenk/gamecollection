@@ -1,10 +1,10 @@
 ﻿using ACL.ES;
 using ACL.MQ;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GameID = ACL.ES.AggregateID<VnodeTest.BC.Solitaire.Solitaire>;
+using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
+using VnodeTest.BC.Solitaire.Command;
+using VnodeTest.BC.Solitaire.Event;
 
 namespace VnodeTest.BC.Solitaire
 {
@@ -19,13 +19,26 @@ namespace VnodeTest.BC.Solitaire
 
         public static class Commands
         {
-
+            public static void OpenGame(GameID id, AccountID accountID) =>
+                            MessageBus.Instance.Send(new OpenGame(id, accountID));
+            public static void EndGame(GameID id, AccountID accountID) =>
+                MessageBus.Instance.Send(new EndGame(id, accountID));
+            public static void JoinGame(GameID id, AccountID accountID) =>
+                MessageBus.Instance.Send(new JoinGame(id, accountID));
         }
 
-        //public IEnumerable<IEvent> On(Command command)
-        //{
-        //    yield return new Event
-        //}
+        public IEnumerable<IEvent> On(OpenGame command)
+        {
+            yield return new GameOpened(command.ID, command.AccountID);
+        }
+        public IEnumerable<IEvent> On(EndGame command)
+        {
+            yield return new GameEnded(command.ID, command.AccountID);
+        }
+        public IEnumerable<IEvent> On(JoinGame command)
+        {
+            yield return new Gamejoined(command.ID, command.AccountID);
+        }
 
         public override void Apply(IEvent @event)
         {

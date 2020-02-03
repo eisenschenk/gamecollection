@@ -45,6 +45,10 @@ namespace VnodeTest
                 , ZIndex("1")
             ),
 
+            Def(MP2,
+                Margin("2px")
+            ),
+
             Def(M2,
                 Margin("2rem")
             ),
@@ -230,7 +234,7 @@ namespace VnodeTest
                 BorderedBoxGreen,
                 W4C,
                 H6,
-                M2
+                MP2
             ),
 
             Def(CardBlack,
@@ -362,6 +366,7 @@ namespace VnodeTest
         public static readonly Style H6;
         public static readonly Style MP4;
         public static readonly Style M2;
+        public static readonly Style MP2;
         public static readonly Style Ml6;
         public static readonly Style MX2;
         public static readonly Style MY2;

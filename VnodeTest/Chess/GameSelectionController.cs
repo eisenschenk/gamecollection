@@ -2,18 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VnodeTest.BC.General.Account;
 using VnodeTest.BC.Chess.Game;
-using VnodeTest.BC.Chess.Game;
-using VnodeTest.BC.General.Account;
 using VnodeTest.BC.General.Friendships;
-using VnodeTest.Chess.GameEntities;
 using VnodeTest.GameEntities;
 using static ACL.UI.React.DOM;
 using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
-using VnodeTest.Chess;
 using System.Threading;
 
 namespace VnodeTest.Chess
@@ -29,10 +23,12 @@ namespace VnodeTest.Chess
         private VNode RefreshReference;
         private RenderClockTimer RenderClockTimerMode;
         private PieceColor PlayerColor => GameProjection.GetOpenGamePlayerColor(AccountEntry.ID);
-        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged }
+        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged, Solitaire }
         private RendermodeLocal RenderMode;
+
         public RootController RootController { get; set; }
-        public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection, ChessgameProjection chessgameProjection, RootController rootController)
+        public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection,
+            ChessgameProjection chessgameProjection, RootController rootController)
         {
             AccountEntry = accountEntry;
             FriendshipProjection = friendshipProjection;
@@ -66,7 +62,7 @@ namespace VnodeTest.Chess
             if (GameID == default && RenderMode != RendermodeLocal.WaitingForChallenged)
                 return RenderGameModeSelection();
             if (Game != default)
-                RootController.Rendermode = Rendermode.Gameboard;
+                RootController.Rendermode = Rendermode.ChessGameboard;
             if (!challengesFromYou.Any())
                 RenderMode = RendermodeLocal.Default;
             return RenderWaitingRoom();
@@ -74,6 +70,7 @@ namespace VnodeTest.Chess
 
         private VNode RenderGameModeSelection()
         {
+            bool playChess = default;
             VNode SelectMode(string buttontext, Gamemode gamemode, RenderClockTimer renderClockTimer)
             {
                 return Row(
@@ -81,7 +78,15 @@ namespace VnodeTest.Chess
                        RenderClockTimerMode == renderClockTimer ? RenderClockTimerSelection(gamemode) : null
                 );
             }
+            if (!playChess)
+            {
+                return Div(
+                    Text("Play Chess!", Styles.Btn & Styles.MP4, () => playChess = true),
+                    Text("Play Solitaire!", Styles.Btn & Styles.MP4, () => RootController.Rendermode = Rendermode.SolitaireGameboard)
+                );
+            }
             return Div(
+                Text("Play Chess:"),
                 SelectMode("Player vs. AI Start", Gamemode.PvE, RenderClockTimer.PvE),
                 SelectMode("AI vs. AI Start", Gamemode.EvE, RenderClockTimer.EvE),
                 Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.PlayFriend)
@@ -102,7 +107,7 @@ namespace VnodeTest.Chess
             RenderClockTimerMode = RenderClockTimer.Default;
             Chessgame.Commands.OpenGame(gID, gamemode, clocktimer);
             Chessgame.Commands.JoinGame(gID, AccountEntry.ID);
-            RootController.Rendermode = Rendermode.Gameboard;
+            RootController.Rendermode = Rendermode.ChessGameboard;
             Game.Engine = new EngineControl();
             //EvE loop
             if (gamemode == Gamemode.EvE)

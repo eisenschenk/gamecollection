@@ -1,0 +1,1 @@
+﻿public enum PipValue { Club, Spade, Heart, Diamond, Zero }

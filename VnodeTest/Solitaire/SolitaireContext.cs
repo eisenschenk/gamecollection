@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VnodeTest.BC.General.Account;
 using VnodeTest.BC.Solitaire;
 using VnodeTest.Solitaire;
 
@@ -41,7 +42,7 @@ namespace VnodeTest
             SolitaireHandler = new BC.Solitaire.Solitaire.Handler(Repository, bus);
         }
 
-        public SolitaireController CreateSolitaireController() =>
-            new SolitaireController();
+        public SolitaireController CreateSolitaireController(AggregateID<Account> accountID) =>
+            new SolitaireController(SolitaireProjection, accountID);
     }
 }

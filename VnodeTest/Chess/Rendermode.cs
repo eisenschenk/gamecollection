@@ -1,7 +1,8 @@
 ﻿public enum Rendermode
 {
     Default,
-    Gameboard,
+    ChessGameboard,
     Friendcontroller,
-    GameSelection,   
+    GameSelection,  
+    SolitaireGameboard,
 }
