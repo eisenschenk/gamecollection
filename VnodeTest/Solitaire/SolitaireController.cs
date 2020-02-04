@@ -19,19 +19,19 @@ namespace VnodeTest.Solitaire
     {
         private GameID GameID /*=> LastPlayedgame == default ? SolitaireProjection.GetGameID(AccountID) : LastPlayedgame*/;
         private AccountID AccountID { get; }
-        private GameID LastPlayedgame;
+        public RootController RootController { get; set; }
+
+        private GameID LastPlayedgame => SolitaireProjection.GetLastPlayedGame(AccountID);
         private Gameboard GameBoard => GameID != default ? SolitaireProjection[GameID].GameBoard : null;
         private Card Selected;
 
         private SolitaireProjection SolitaireProjection;
 
-        public SolitaireController(SolitaireProjection solitaireProjection, AccountID accountID)
+        public SolitaireController(SolitaireProjection solitaireProjection, AccountID accountID, RootController rootController)
         {
             SolitaireProjection = solitaireProjection;
             AccountID = accountID;
-            LastPlayedgame = solitaireProjection.GetLastPlayedGame(accountID);
-            //TODO close all open games with this account id // maybe better get last played game which is not closed -> close rest
-            //TODO: OpenGame if no old game exists
+            RootController = rootController;
         }
 
         public VNode Render()
@@ -49,16 +49,14 @@ namespace VnodeTest.Solitaire
             }
             if (GameID == default)
             {
-
+                VNode continueLastGame = null;
                 if (LastPlayedgame != default)
-                {
-                    return Row(
-                        Text("Continue Last Game", Styles.Btn & Styles.MP4, () => joinOldGame()),
-                        Text("Start New Game", Styles.Btn & Styles.MP4, () => startNewGame())
-
-                    );
-                }
-                return Text("Start New Game", Styles.Btn & Styles.MP4, () => startNewGame());
+                    continueLastGame = Text("Continue Last Game", Styles.Btn & Styles.MP4, () => joinOldGame());
+                return Div(
+                    continueLastGame,
+                    Text("Start New Game", Styles.Btn & Styles.MP4, () => startNewGame()),
+                    Text("Back", Styles.Btn & Styles.MP4, () => RootController.Rendermode = Rendermode.GameSelection)
+                );
             }
             return RenderGameboard();
 
@@ -67,6 +65,7 @@ namespace VnodeTest.Solitaire
         private VNode RenderGameboard()
         {
             return Div(
+                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID); GameID = default; }),
                 Row(
                     Row(
                         Styles.FitContent & Styles.W33,

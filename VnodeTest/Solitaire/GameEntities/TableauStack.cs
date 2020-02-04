@@ -13,10 +13,9 @@ namespace VnodeTest.Solitaire.GameEntities
 
         public TableauStack() { }
 
-        //TODO why not implemented? could return false instead to make tableaustack unpushable?
         public override bool CanPush(Card card)
         {
-            throw new NotImplementedException();
+            return false;
         }
     }
 }

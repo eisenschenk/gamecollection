@@ -47,7 +47,7 @@ namespace VnodeTest.BC.Solitaire
 
         public GameID GetLastPlayedGame(AccountID accountID)
         {
-            var gameid = Dict.Values.ToArray().Where(v => v.Player == accountID).OrderBy(x => x.DateCreated).Select(g => g.ID).FirstOrDefault();
+            var gameid = Dict.Values.ToArray().Where(v => v.Player == accountID).OrderByDescending(x => x.DateCreated).Select(g => g.ID).FirstOrDefault();
             if (!Dict.ContainsKey(gameid) || Dict[gameid].Closed)
                 return default;
             return gameid;

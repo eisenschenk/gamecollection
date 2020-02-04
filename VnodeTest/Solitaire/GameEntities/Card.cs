@@ -8,7 +8,6 @@ namespace VnodeTest.Solitaire.GameEntities
 {
     public partial class Card
     {
-        //TODO put style somewhere else
         public CardValue CardValue { get; }
         public PipValue PipValue { get; }
         public ColorValue Color { get; }

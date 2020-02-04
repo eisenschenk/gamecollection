@@ -15,7 +15,7 @@ namespace VnodeTest.Solitaire.GameEntities
 
         public bool TryPush(Card sourceCard, BaseStack sourceStack)
         {
-            //TODO: naming is trash, no clue what this is or why i need it
+            //tempstack are the selected card and all cards on top, only needed due to using stacks
             CardStack getTempStack(Card card)
             {
                 var tempStack = new CardStack();
@@ -34,7 +34,6 @@ namespace VnodeTest.Solitaire.GameEntities
             return false;
         }
 
-        //TODO: maybe pass stack instead of deck, deck is only used to get the stack its in
         public void PushToEmptyStack(Gameboard cards, Card selected)
         {
             TryPush(selected, cards.GetStack(selected));

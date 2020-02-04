@@ -36,19 +36,18 @@ namespace VnodeTest
 
         public VNode Render()
         {
-            //TODO: use rendermethods directly
             if (AccountEntry == null)
                 return LoginController.Render(this);
-            if (Rendermode == Rendermode.Default)
-                CurrentContent = null;
-            if (Rendermode == Rendermode.ChessGameboard)
-                CurrentContent = ChessController.Render;
-            if (Rendermode == Rendermode.Friendcontroller)
-                CurrentContent = FriendshipController.Render;
-            if (Rendermode == Rendermode.GameSelection)
-                CurrentContent = GameSelectionController.Render;
-            if (Rendermode == Rendermode.SolitaireGameboard)
-                CurrentContent = SolitaireController.Render;
+
+            CurrentContent = Rendermode switch
+            {
+                Rendermode.Default => null,
+                Rendermode.ChessGameboard => ChessController.Render,
+                Rendermode.Friendcontroller => FriendshipController.Render,
+                Rendermode.GameSelection => GameSelectionController.Render,
+                Rendermode.SolitaireGameboard => SolitaireController.Render,
+                _ => null
+            };
             return Row(
                 RenderSideMenu(),
                 CurrentContent?.Invoke()
@@ -76,7 +75,9 @@ namespace VnodeTest
 
         private SolitaireController _SolitaireController;
         private SolitaireController SolitaireController =>
-            _SolitaireController ??= ((Application)Application.Instance).SolitaireContext.CreateSolitaireController(AccountEntry.ID);
+            _SolitaireController ??= ((Application)Application.Instance).SolitaireContext.CreateSolitaireController(AccountEntry.ID, this);
+
+
     }
 
 }

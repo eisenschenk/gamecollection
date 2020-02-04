@@ -42,7 +42,7 @@ namespace VnodeTest
             SolitaireHandler = new BC.Solitaire.Solitaire.Handler(Repository, bus);
         }
 
-        public SolitaireController CreateSolitaireController(AggregateID<Account> accountID) =>
-            new SolitaireController(SolitaireProjection, accountID);
+        public SolitaireController CreateSolitaireController(AggregateID<Account> accountID, RootController rootController) =>
+            new SolitaireController(SolitaireProjection, accountID, rootController);
     }
 }

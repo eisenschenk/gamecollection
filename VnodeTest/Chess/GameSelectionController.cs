@@ -23,7 +23,7 @@ namespace VnodeTest.Chess
         private VNode RefreshReference;
         private RenderClockTimer RenderClockTimerMode;
         private PieceColor PlayerColor => GameProjection.GetOpenGamePlayerColor(AccountEntry.ID);
-        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged, Solitaire }
+        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged, Solitaire, Chess }
         private RendermodeLocal RenderMode;
 
         public RootController RootController { get; set; }
@@ -78,18 +78,19 @@ namespace VnodeTest.Chess
                        RenderClockTimerMode == renderClockTimer ? RenderClockTimerSelection(gamemode) : null
                 );
             }
-            if (!playChess)
+            if (RenderMode != RendermodeLocal.Chess)
             {
                 return Div(
-                    Text("Play Chess!", Styles.Btn & Styles.MP4, () => playChess = true),
+                    Text("Play Chess!", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Chess),
                     Text("Play Solitaire!", Styles.Btn & Styles.MP4, () => RootController.Rendermode = Rendermode.SolitaireGameboard)
                 );
             }
             return Div(
-                Text("Play Chess:"),
+                Text("Play Chess:", Styles.MP4),
                 SelectMode("Player vs. AI Start", Gamemode.PvE, RenderClockTimer.PvE),
                 SelectMode("AI vs. AI Start", Gamemode.EvE, RenderClockTimer.EvE),
-                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.PlayFriend)
+                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.PlayFriend),
+                Text("Back", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.Default)
             );
         }
 
