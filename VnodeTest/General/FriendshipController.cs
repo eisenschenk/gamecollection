@@ -64,9 +64,13 @@ namespace VnodeTest.General
 
         private VNode RenderAddFriend()
         {
+            var friends = FriendshipProjection.GetFriends(AccountEntry.ID).Select(a => a.AccountID);
             return Div(
-                SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(AccountProjection.Accounts.Select(a => new BefriendedAccountEntrySearchWrapper(a, default)),
+                SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(AccountProjection.Accounts
+                .Where(a => !friends.Contains(a.ID) && a.ID != AccountEntry.ID)
+                .Select(a => new BefriendedAccountEntrySearchWrapper(a, default)),
                     w => Friendship.Commands.RequestFriend(FriendID.Create(), AccountEntry.ID, w.AccountEntry.ID)),
+
                 Text("back", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.Overview)
             );
         }

@@ -95,11 +95,9 @@
     <Compile Include="BC\General\Friendships\Event\FriendshipRequested.cs" />
     <Compile Include="BC\General\Friendships\Friendship.cs" />
     <Compile Include="BC\General\Friendships\FriendshipProjection.cs" />
-    <Compile Include="BC\Solitaire\Command\CloseAllOpenGames.cs" />
     <Compile Include="BC\Solitaire\Command\EndGame.cs" />
     <Compile Include="BC\Solitaire\Command\JoinGame.cs" />
     <Compile Include="BC\Solitaire\Command\OpenGame.cs" />
-    <Compile Include="BC\Solitaire\Event\AllOpenGamesClosed.cs" />
     <Compile Include="BC\Solitaire\Event\GameEnded.cs" />
     <Compile Include="BC\Solitaire\Event\GameJoined.cs" />
     <Compile Include="BC\Solitaire\Event\GameOpened.cs" />
