@@ -9,6 +9,7 @@ using VnodeTest.GameEntities;
 using static ACL.UI.React.DOM;
 using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
 using System.Threading;
+using VnodeTest.General;
 
 namespace VnodeTest.Chess
 {
@@ -21,20 +22,19 @@ namespace VnodeTest.Chess
         private readonly ChessgameProjection GameProjection;
         private AccountEntry AccountEntry;
         private VNode RefreshReference;
-        private RenderClockTimer RenderClockTimerMode;
-        private PieceColor PlayerColor => GameProjection.GetOpenGamePlayerColor(AccountEntry.ID);
-        private enum RendermodeLocal { Default, PlayFriend, WaitingForChallenged, Solitaire, Chess }
-        private RendermodeLocal RenderMode;
+        private (Gamemode Mode, ClockTimer ClockTimer) GameSelection;
+
+        //private RendermodeLocal RenderMode;
 
         public RootController RootController { get; set; }
+
         public GameSelectionController(AccountEntry accountEntry, FriendshipProjection friendshipProjection, AccountProjection accountProjection,
-            ChessgameProjection chessgameProjection, RootController rootController)
+            ChessgameProjection chessgameProjection)
         {
             AccountEntry = accountEntry;
             FriendshipProjection = friendshipProjection;
             AccountProjection = accountProjection;
             GameProjection = chessgameProjection;
-            RootController = rootController;
             ThreadPool.QueueUserWorkItem(o =>
             {
                 while (true)
@@ -53,65 +53,54 @@ namespace VnodeTest.Chess
         private VNode RenderMain()
         {
             var challengesFromFriends = GameProjection.Games.Where(g => !g.Closed && g.Receiver == AccountEntry.ID);
-            var challengesFromYou = GameProjection.Games.Where(g => !g.Closed && g.Challenger == AccountEntry.ID);
 
             if (challengesFromFriends.Any() && Game == default)
                 return RenderChallenges(challengesFromFriends);
-            if (RenderMode == RendermodeLocal.PlayFriend)
-                return RenderChallengeFriend();
-            if (GameID == default && RenderMode != RendermodeLocal.WaitingForChallenged)
-                return RenderGameModeSelection();
-            if (Game != default)
-                RootController.Rendermode = Rendermode.ChessGameboard;
-            if (!challengesFromYou.Any())
-                RenderMode = RendermodeLocal.Default;
-            return RenderWaitingRoom();
+            return RenderGameModeSelection();
         }
 
         private VNode RenderGameModeSelection()
         {
-            bool playChess = default;
-            VNode SelectMode(string buttontext, Gamemode gamemode, RenderClockTimer renderClockTimer)
-            {
-                return Row(
-                       Text(buttontext, Styles.Btn & Styles.MP4, () => RenderClockTimerMode = renderClockTimer),
-                       RenderClockTimerMode == renderClockTimer ? RenderClockTimerSelection(gamemode) : null
-                );
-            }
-            if (RenderMode != RendermodeLocal.Chess)
-            {
-                return Div(
-                    Text("Play Chess!", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Chess),
-                    Text("Play Solitaire!", Styles.Btn & Styles.MP4, () => RootController.Rendermode = Rendermode.SolitaireGameboard)
-                );
-            }
             return Div(
-                Text("Play Chess:", Styles.MP4),
-                SelectMode("Player vs. AI Start", Gamemode.PvE, RenderClockTimer.PvE),
-                SelectMode("AI vs. AI Start", Gamemode.EvE, RenderClockTimer.EvE),
-                Text("Play vs. Friend", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.PlayFriend),
-                Text("Back", Styles.MP4 & Styles.Btn, () => RenderMode = RendermodeLocal.Default)
+                Row(
+                    Text("Player vs. AI", GameSelection.Mode == Gamemode.PvE ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => GameSelection.Mode = Gamemode.PvE),
+                    Text("AI vs. AI", GameSelection.Mode == Gamemode.EvE ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => GameSelection.Mode = Gamemode.EvE),
+                    Text("Play vs. Friend", GameSelection.Mode == Gamemode.PvF ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => GameSelection.Mode = Gamemode.PvF)
+                ),
+                Row(
+                    Text("normal", GameSelection.ClockTimer == ClockTimer.Normal ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => GameSelection.ClockTimer = ClockTimer.Normal),
+                    Text("blitz", GameSelection.ClockTimer == ClockTimer.Blitz ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => GameSelection.ClockTimer = ClockTimer.Blitz),
+                    Text("bullet", (GameSelection.ClockTimer == ClockTimer.Bullet ? Styles.TabMenuItemSelected : Styles.TabMenuItem) & Styles.MB2P5rem, () => GameSelection.ClockTimer = ClockTimer.Bullet)
+                ),
+                GameSelection.ClockTimer != default && GameSelection.Mode != default
+                    ? GameSelection.Mode != Gamemode.PvF
+                        ? Text("Start", Styles.TabButton, () => SelectGameMode())
+                        : RenderChallengeFriend()
+                    : null
             );
         }
 
-        private VNode RenderClockTimerSelection(Gamemode gamemode)
+        private double GetClocktimer()
         {
-            return Row(
-                Text("normal", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 3600)),
-                Text("blitz", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 500)),
-                Text("bullet", Styles.Btn & Styles.MP4, () => SelectGameMode(gamemode, 250))
-            );
+            return GameSelection.ClockTimer switch
+            {
+                ClockTimer.Normal => 3600,
+                ClockTimer.Blitz => 500,
+                ClockTimer.Bullet => 250,
+                _ => throw new NotImplementedException(),
+            };
         }
-        private void SelectGameMode(Gamemode gamemode, double clocktimer = 0)
+
+        private void SelectGameMode()
         {
             var gID = GameID.Create();
-            RenderClockTimerMode = RenderClockTimer.Default;
-            Chessgame.Commands.OpenGame(gID, gamemode, clocktimer);
+            Chessgame.Commands.OpenGame(gID, GameSelection.Mode, GetClocktimer());
             Chessgame.Commands.JoinGame(gID, AccountEntry.ID);
-            RootController.Rendermode = Rendermode.ChessGameboard;
+            //TODO here?
+            //SidebarModule.CurrentContent = SidebarModule.ChessController.Render;
             Game.Engine = new EngineControl();
             //EvE loop
-            if (gamemode == Gamemode.EvE)
+            if (GameSelection.Mode == Gamemode.EvE)
                 ThreadPool.QueueUserWorkItem(o =>
                 {
                     while (Game != default && !Game.GameOver)
@@ -123,25 +112,6 @@ namespace VnodeTest.Chess
                             game.TryEngineMove(game.Engine.GetEngineMove(game.GetFeNotation()), game.PlayedByEngine);
                     }
                 });
-        }
-
-        private VNode RenderWaitingRoom()
-        {
-            var challenges = GameProjection.Games.Where(g => g.Challenger == AccountEntry.ID);
-
-            return Div(
-                Fragment(challenges.Select(c =>
-                    Div(
-                        GameProjection[c.ID].HasOpenSpots && c.Created.AddSeconds(c.Timer) > DateTime.Now
-                            ? Row(
-                                Text($"Waiting for Friend: {c.Timer - c.Elapsed.Seconds}"),
-                                Text("Abort Challenge!", Styles.AbortBtn & Styles.MP4, () => Chessgame.Commands.DenyChallenge(c.ID))
-                            )
-                            : null
-                    )
-                )),
-                Text("back", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Default)
-            );
         }
 
         private VNode RenderChallenges(IEnumerable<GameEntry> challenges)
@@ -159,38 +129,40 @@ namespace VnodeTest.Chess
 
         private VNode RenderChallengeFriend()
         {
+            VNode renderFriends(AccountEntry friend)
+            {
+                var friendChallenged = GameProjection.Games.Where(g => g.Challenger == AccountEntry.ID && g.Receiver == friend.ID && !g.Closed).FirstOrDefault();
+
+                //friend already challenged -> render deny challenge option
+                if (friendChallenged != default)
+                    return GameProjection[friendChallenged.ID].HasOpenSpots && friendChallenged.Created.AddSeconds(friendChallenged.Timer) > DateTime.Now
+                        ? Row(
+                            Text($"placeholder - {friendChallenged.Timer - friendChallenged.Elapsed.Seconds}", Styles.TabNameTag),
+                            Text("Abort Challenge!", Styles.TabButtonSelected, () => Chessgame.Commands.DenyChallenge(friendChallenged.ID))
+                        )
+                        : null;
+
+                //render challenge friend option
+                return Row(
+                            Text(friend.Username, Styles.TabNameTag),
+                            Text("Challenge", Styles.TabMenuItem, () => challengeFriend(friend))
+                        );
+            }
+
+            void challengeFriend(AccountEntry friend)
+            {
+                var gID = GameID.Create();
+                Chessgame.Commands.OpenGame(gID, Gamemode.PvF, GetClocktimer());
+                Chessgame.Commands.RequestChallenge(gID, AccountEntry.ID, friend.ID);
+            }
             var friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(id => AccountProjection[id.AccountID]);
-            VNode back = Text("back", Styles.Btn & Styles.MP4, () => RenderMode = RendermodeLocal.Default);
 
             if (friends != default)
-                return Div(
-                    Fragment(friends.Select(f =>
-                        Row(
-                            Text(f.Username),
-                            Text("Challenge", Styles.Btn & Styles.MP4, () => RenderClockTimerMode = RenderClockTimer.PvF),
-                            RenderClockTimerMode == RenderClockTimer.PvF
-                                ? Row(
-                                    Text("normal", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 3600)),
-                                    Text("blitz", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 300)),
-                                    Text("bullet", Styles.Btn & Styles.MP4, () => ChallengeFriend(f, 120)))
-                                : null
-                        )
-                    )),
-                    back
-                );
-            return Div(
-                Text("no friends -_-'"),
-                back
-            );
+                return Fragment(friends.Select(f => renderFriends(f)));
+
+            return Text("no friends -_-'");
         }
 
-        private void ChallengeFriend(AccountEntry accountEntry, double clocktimer)
-        {
-            var gID = GameID.Create();
-            Chessgame.Commands.OpenGame(gID, Gamemode.PvF, clocktimer);
-            Chessgame.Commands.RequestChallenge(gID, AccountEntry.ID, accountEntry.ID);
-            RenderMode = RendermodeLocal.WaitingForChallenged;
-            RenderClockTimerMode = RenderClockTimer.Default;
-        }
+
     }
 }

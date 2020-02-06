@@ -1,8 +1,8 @@
-﻿enum RenderClockTimer
+﻿enum ClockTimer
 {
     Default,
-    PvF,
-    EvE,
-    PvE
+    Normal,
+    Blitz,
+    Bullet
 
 }

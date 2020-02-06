@@ -9,69 +9,80 @@ using static ACL.UI.React.DOM;
 using ChessGameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
 using SolitaireGameID = ACL.ES.AggregateID<VnodeTest.BC.Solitaire.Solitaire>;
 using VnodeTest.Solitaire;
+using static VnodeTest.General.FriendshipController;
+using System.Linq;
+using System.Threading;
 
 namespace VnodeTest
 {
     public class RootController
     {
         private readonly Session Session;
-        public AccountEntry AccountEntry { get; set; }
-        private Func<VNode> CurrentContent;
-        private ChessGameID ChessGameID => ChessController.GameProjection.GetGameID(AccountEntry.ID);
+        public AccountEntry AccountEntry => LoginController.CurrentUser;
+        private VNode CurrentContent;
+        private ChessGameID ChessGameID => AccountEntry != null ? ChessController?.GameProjection.GetGameID(AccountEntry.ID) ?? default : default;
         private ChessGameID SolitaireGameID = default;
         public Rendermode Rendermode { get; set; } = Rendermode.Default;
+        public LocalRendermode LocalRendermode { get; set; } = LocalRendermode.Default;
+        public Stack<Crumb> BreadCrumbs { get; } = new Stack<Crumb>();
+        public SidebarModule SidebarModule { get; set; } = default;
+        private bool HasRefreshed;
 
-        private VNode RenderSideMenu()
-        {
-            return Div(
-                Text("Play", Styles.Btn & Styles.MP4, () => Rendermode = ChessGameID == default && SolitaireGameID == default ? Rendermode.GameSelection : Rendermode.ChessGameboard),
-                Text("Friends", Styles.Btn & Styles.MP4, () => Rendermode = Rendermode.Friendcontroller)
-            );
-        }
+
 
         public RootController(Session session)
         {
             Session = session;
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                while (true)
+                {
+                    if (AccountEntry != default && ChessGameID == default && ChessController.LastGame == default)
+                        HasRefreshed = false;
+                    if (AccountEntry != default && ChessGameID != default && HasRefreshed == false)
+                    {
+                        SidebarModule.CurrentContent = ChessController.Render;
+                        HasRefreshed = true;
+                    }
+                }
+            });
         }
 
         public VNode Render()
         {
             if (AccountEntry == null)
-                return LoginController.Render(this);
+                return LoginController.Render();
 
-            CurrentContent = Rendermode switch
-            {
-                Rendermode.Default => null,
-                Rendermode.ChessGameboard => ChessController.Render,
-                Rendermode.Friendcontroller => FriendshipController.Render,
-                Rendermode.GameSelection => GameSelectionController.Render,
-                Rendermode.SolitaireGameboard => SolitaireController.Render,
-                _ => null
-            };
+            if (SidebarModule == default)
+                SidebarModule = new SidebarModule(AccountEntry, ChessController, SolitaireController, GameSelectionController, FriendshipController);
+
             return Row(
-                RenderSideMenu(),
-                CurrentContent?.Invoke()
+                SidebarModule.Render(),
+                Div(
+                    Styles.MainWindow,
+                    CurrentContent = SidebarModule.CurrentContent?.Invoke()
+                )
             );
         }
 
         private ChessController _ChessController;
         private ChessController ChessController =>
         _ChessController ??
-        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry, this));
+        (_ChessController = ((Application)Application.Instance).ChessContext.CreateChessController(AccountEntry));
 
 
-        private AccountController _LoginController;
-        private AccountController LoginController =>
+        private LoginController _LoginController;
+        private LoginController LoginController =>
             _LoginController ??= ((Application)Application.Instance).GeneralContext.CreateLoginController();
 
 
         private FriendshipController _FriendshipController;
         private FriendshipController FriendshipController =>
-            _FriendshipController ??= ((Application)Application.Instance).GeneralContext.CreateFriendshipController(AccountEntry);
+            _FriendshipController ??= ((Application)Application.Instance).GeneralContext.CreateFriendshipController(AccountEntry, this);
 
         private GameSelectionController _GameSelectionController;
         private GameSelectionController GameSelectionController =>
-            _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry, this);
+            _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry);
 
         private SolitaireController _SolitaireController;
         private SolitaireController SolitaireController =>

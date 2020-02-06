@@ -47,7 +47,14 @@
     <Reference Include="AngleSharp.Css">
       <HintPath>..\..\..\..\..\..\Projekt\dll\ACL.Dev\AngleSharp\AngleSharp.Css.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpRaven, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpRaven.2.4.0\lib\net471\SharpRaven.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
@@ -121,13 +128,15 @@
     <Compile Include="Chess\PieceValue.cs" />
     <Compile Include="Chess\RenderClockTimer.cs" />
     <Compile Include="Chess\Rendermode.cs" />
+    <Compile Include="General\Crumb.cs" />
     <Compile Include="General\FriendshipController.cs" />
     <Compile Include="General\Passwordhelper.cs" />
     <Compile Include="Chess\GameSelectionController.cs" />
     <Compile Include="General\GeneralContext.cs" />
     <Compile Include="Application.cs" />
-    <Compile Include="General\AccountController.cs" />
-    <Compile Include="General\RenderMode.cs" />
+    <Compile Include="General\LoginController.cs" />
+    <Compile Include="General\LocalRendermode.cs" />
+    <Compile Include="General\SidebarModule.cs" />
     <Compile Include="ISearchable.cs" />
     <Compile Include="PaginationComponent.cs" />
     <Compile Include="PM\AcceptChallenge.cs" />
@@ -155,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\..\Projekt\examples\ACL.ES\ACL.ES.csproj">

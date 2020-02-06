@@ -19,21 +19,14 @@ namespace VnodeTest.GameEntities
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
         {
             int possibleMove = (StartPosition == Position) ? 2 : 1;
-            Func<(int X, int Y), bool> enemyPiece = position => gameboard[position] != null && gameboard[position].Color != Color;
-            if (Color == PieceColor.White)
-            {
-                //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
-                var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
-                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => p.Y > Position.Y && enemyPiece(p) || p == gameboard.EnPassantTarget));
-            }
-            else
-            {
-                //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
-                var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
-                return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => p.Y < Position.Y && enemyPiece(p) || p == gameboard.EnPassantTarget));
-            }
-        }
+            bool enemyPiece((int X, int Y) position) => gameboard[position] != null && gameboard[position].Color != Color;
+            bool filterY(int y, int positionY) => Color == PieceColor.White ? y > positionY : y < positionY;
 
-        //public override Piece Copy() => new Pawn(Position, Color);
+            //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
+            var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
+            return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => filterY(p.Y, Position.Y) && enemyPiece(p) || p == gameboard.EnPassantTarget));
+
+        }
     }
 }
+

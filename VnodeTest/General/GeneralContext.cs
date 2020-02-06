@@ -45,11 +45,11 @@ namespace VnodeTest.General
             FriendshipHandler = new Friendship.Handler(Repository, bus);
         }
 
-        public AccountController CreateLoginController() =>
-            new AccountController(AccountProjection);
+        public LoginController CreateLoginController() =>
+            new LoginController(AccountProjection);
 
-        public FriendshipController CreateFriendshipController(AccountEntry accountEntry) =>
-            new FriendshipController(accountEntry, AccountProjection, ((Application)Application.Instance).ChessContext.ChessProjection, FriendshipProjection);
+        public FriendshipController CreateFriendshipController(AccountEntry accountEntry, RootController rootController) =>
+            new FriendshipController(accountEntry, AccountProjection, ((Application)Application.Instance).ChessContext.ChessProjection, FriendshipProjection, rootController);
     }
 
         //public (JSONFileEventStore Store, Repository Repository) CreateStore(string storename, string nameSpace)

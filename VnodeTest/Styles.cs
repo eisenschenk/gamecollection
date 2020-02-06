@@ -57,6 +57,10 @@ namespace VnodeTest
                 Margin("4px")
             ),
 
+            Def(MP8,
+                Margin("8px")
+            ),
+
             Def(Ml6,
                 Margin("0rem 0rem 0rem 6rem")
             ),
@@ -64,6 +68,11 @@ namespace VnodeTest
             Def(MX2,
                 MarginLeft("2px"),
                 MarginRight("2px")
+            ),
+
+            Def(MY1,
+                MarginTop("1rem"),
+                MarginBottom("1rem")
             ),
 
             Def(MY2,
@@ -84,6 +93,11 @@ namespace VnodeTest
                 MarginLeft("2px")
             ),
 
+            Def(MT1,
+                MarginTop("1rem")
+            ),
+
+
             Def(MT2,
                 MarginTop("2px")
             ),
@@ -91,6 +105,7 @@ namespace VnodeTest
             Def(MB2,
                 MarginBottom("2px")
             ),
+           
 
             Def(R10,
                 Right("10px")
@@ -102,6 +117,84 @@ namespace VnodeTest
 
             Def(Relative,
                 Position("relative")
+            ),
+
+            Def(TabNameTag,
+                MarginTop("1rem"),
+                Padding("4px"),
+                Margin("0.25rem"),
+                Width("7rem"),
+                BackgroundColor("mediumslateblue"),
+                Color("linen"),
+                Border("solid"),
+                BorderColor("mediumslateblue"),
+                TextAlignC
+            ),
+
+            Def(TabButtonSelected,
+                MarginTop("1rem"),
+                Padding("4px"),
+                Margin("0.25rem"),
+                Width("7rem"),
+                BackgroundColor("brown"),
+                Color("linen"),
+                Border("solid"),
+                BorderColor("linen"),
+                TextAlignC
+            ),
+
+            Def(TabButton,
+                MarginTop("1rem"),
+                Padding("4px"),
+                Margin("0.25rem"),
+                Width("7rem"),
+                BackgroundColor("yellowgreen"),
+                Color("linen"),
+                Border("solid"),
+                BorderColor("linen"),
+                TextAlignC
+            ),
+
+             Def(TabMenuItem,
+                MarginTop("1rem"),
+                Padding("4px"),
+                Margin("0.25rem"),
+                Width("7rem"),
+                BackgroundColor("mediumslateblue"),
+                Color("linen"),
+                Border("solid"),
+                BorderColor("linen"),
+                TextAlignC
+            ),
+
+             Def(TabMenuItemSelected,
+                MarginTop("1rem"),
+                Padding("4px"),
+                Margin("0.25rem"),
+                Width("7rem"),
+                BackgroundColor("lightsalmon"),
+                Color("linen"),
+                Border("solid"),
+                BorderColor("linen"),
+                TextAlignC
+            ),
+
+              Def(MB2P5rem,
+                MarginBottom("2.5rem")
+            ),
+
+            Def(MainMenuItem,
+                MarginTop("1rem"),
+                Padding("4px"),
+                BackgroundColor("darkslategray"),
+                Color("linen")
+            ),
+
+            Def(SubMenuItem,
+                Padding("4px"),
+                BackgroundColor("gray"),
+                GetHoverRule("dimgray"),
+                Color("Linen")
             ),
 
             Def(Btn,
@@ -308,12 +401,44 @@ namespace VnodeTest
                 Width("8rem")
             ),
 
+             Def(W12C,
+                Width("12rem")
+            ),
+
             Def(FontSize1p5,
                 FontSize("1.5rem")
             ),
 
              Def(FontSize3,
                 FontSize("3rem")
+            ),
+
+             Def(Sidebar,
+                Width("15%"),
+                Height("100%"),
+                Position("fixed"),
+                ZIndex("1"),
+                Top("0"),
+                Left("0"),
+                BackgroundColor("silver")
+            ),
+
+             Def(MainWindow,
+                Width("100%"),
+                Height("100%"),
+                PaddingLeft("15%"),
+                Position("fixed"),
+                Top(""),
+                Left("15%"),
+                BackgroundColor("cadetblue")
+            ),
+
+             Def(P15P,
+                 PaddingLeft("15%")
+            ),
+
+            Def(W15,
+                Width("15%")
             ),
 
             Def(W25,
@@ -332,8 +457,29 @@ namespace VnodeTest
                 Width("75%")
             ),
 
+             Def(W100,
+                Width("100%")
+            ),
+
+              Def(H100,
+                Height("100%")
+            ),
+
              Def(BCred,
                 BackgroundColor("red")
+            ),
+
+              Def(BCMain,
+                BackgroundColor("cadetblue")
+            ),
+
+              Def(BorderWhiteSolid,
+                Border("solid"),
+                BorderColor("linen")
+            ),
+
+             Def(BCMenu,
+                BackgroundColor("burlywood")
             )
 
         );
@@ -354,6 +500,8 @@ namespace VnodeTest
         public static readonly Style HoverWhite;
 
         public static readonly Style BCblack;
+        public static readonly Style BCMenu;
+        public static readonly Style BCMain;
         public static readonly Style BCred;
         public static readonly Style TCblack;
         public static readonly Style TCred;
@@ -365,27 +513,40 @@ namespace VnodeTest
 
         public static readonly Style H6;
         public static readonly Style MP4;
+        public static readonly Style MP8;
         public static readonly Style M2;
         public static readonly Style MP2;
         public static readonly Style Ml6;
         public static readonly Style MX2;
+        public static readonly Style MY1;
         public static readonly Style MY2;
         public static readonly Style MY6;
         public static readonly Style MR2;
         public static readonly Style ML2;
+        public static readonly Style MT1;
         public static readonly Style MT2;
         public static readonly Style MB2;
-
+        public static readonly Style MB2P5rem;
+        
         public static readonly Style W2C;
         public static readonly Style W3C;
         public static readonly Style W4C;
         public static readonly Style W6C;
         public static readonly Style W8C;
+        public static readonly Style W12C;
 
+        public static readonly Style P15P;
+
+        public static readonly Style BorderWhiteSolid;
+        public static readonly Style Sidebar;
+        public static readonly Style W15;
         public static readonly Style W25;
         public static readonly Style W33;
         public static readonly Style W50;
         public static readonly Style W75;
+        public static readonly Style W100;
+
+        public static readonly Style H100;
 
         public static readonly Style Dropdown;
         public static readonly Style FlexRow;
@@ -394,6 +555,15 @@ namespace VnodeTest
         public static readonly Style Btn;
         public static readonly Style AbortBtn;
         public static readonly Style SelectedBtn;
+
+        public static readonly Style MainWindow;
+        public static readonly Style MainMenuItem;
+        public static readonly Style SubMenuItem;
+        public static readonly Style TabNameTag;
+        public static readonly Style TabButtonSelected;
+        public static readonly Style TabButton;
+        public static readonly Style TabMenuItem;
+        public static readonly Style TabMenuItemSelected;
 
         public static readonly Style Selected;
 

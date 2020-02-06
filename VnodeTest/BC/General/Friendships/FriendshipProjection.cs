@@ -104,6 +104,12 @@ namespace VnodeTest.BC.General.Friendships
                 return AccountFriendRequests[accountID].Count;
             return 0;
         }
+
+        public IEnumerable<FriendshipID> GetSpecificFriendshipID(AccountID accountID, AccountID friendID)
+        {
+            return Dict.Values.Where(f => f.Accepted && ((f.Receiver == accountID && f.Sender == friendID) || (f.Receiver == friendID && f.Sender == accountID)))
+                .Select(a => a.ID);
+        }
     }
 
     public class FriendshipEntry

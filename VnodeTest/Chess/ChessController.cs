@@ -24,7 +24,7 @@ namespace VnodeTest.Chess
     {
         private GameID GameID => GameProjection.GetGameID(AccountEntry.ID);
         public Game Game => GetCurrentGame();
-        private Game LastGame;
+        public Game LastGame { get; private set; }
         private ChessBoard Gameboard => Game?.ChessBoard;
         private VNode RefreshReference;
         private PieceColor PlayerColor => GameProjection.GetSpecificPlayerColor(AccountEntry.ID, Game);
@@ -36,16 +36,13 @@ namespace VnodeTest.Chess
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
         public ChessgameProjection GameProjection { get; set; }
-        public RootController RootController { get; set; }
-        public Rendermode Rendermode { get; }
 
         private AccountEntry AccountEntry;
 
-        public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection, RootController rootController)
+        public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
             GameProjection = chessgameProjection;
             FriendshipProjection = friendshipProjection;
-            RootController = rootController;
             AccountEntry = accountEntry;
             AccountProjection = accountProjection;
             ThreadPool.QueueUserWorkItem(o =>
@@ -118,10 +115,9 @@ namespace VnodeTest.Chess
                         Chessgame.Commands.EndGame(GameID, Allmoves());
                     });
                 else
-                    return Text("Close Game", Styles.AbortBtn & Styles.MP4, () =>
+                    return Text("Game Over", Styles.AbortBtn & Styles.MP4, () =>
                     {
                         LastGame = default;
-                        RootController.Rendermode = Rendermode.Default;
                     });
             }
             VNode board;

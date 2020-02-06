@@ -6,6 +6,7 @@ using static ACL.UI.React.DOM;
 using VnodeTest.BC.General.Friendships;
 using FriendID = ACL.ES.AggregateID<VnodeTest.BC.General.Friendships.Friendship>;
 using ACL.UI.React;
+using System;
 
 namespace VnodeTest.General
 {
@@ -15,14 +16,20 @@ namespace VnodeTest.General
         public AccountProjection AccountProjection { get; }
         public ChessgameProjection GameProjection { get; }
         public FriendshipProjection FriendshipProjection { get; }
-        private RenderMode Rendermode = RenderMode.Overview;
+        private VNode RefreshReference;
+        private Func<VNode> RenderCurrentcontent;
+        //public RootController RootController { get; set; }
 
-        public FriendshipController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection gameProjection, FriendshipProjection friendshipProjection)
+        //private LocalRendermode Rendermode = LocalRendermode.Default;
+
+        public FriendshipController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection gameProjection,
+            FriendshipProjection friendshipProjection, RootController rootController)
         {
             AccountEntry = accountEntry;
             AccountProjection = accountProjection;
             GameProjection = gameProjection;
             FriendshipProjection = friendshipProjection;
+            //RootController = rootController;
         }
 
         public VNode Render()
@@ -30,23 +37,62 @@ namespace VnodeTest.General
             var friends = FriendshipProjection.GetFriends(AccountEntry.ID);
             var _friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(a => AccountProjection[a.AccountID]);
 
-            return Rendermode switch
+            return Div(
+                Row(
+                    Text("Friendlist", RenderCurrentcontent == RenderOverview ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => RenderCurrentcontent = RenderOverview),
+                    Text("Add Friend", RenderCurrentcontent == RenderAddFriend ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => RenderCurrentcontent = RenderAddFriend),
+                    Text($"Pending Friendrequests {GetStyledNumber()}",
+                        (RenderCurrentcontent == RenderReceivedRequests ? Styles.TabMenuItemSelected : Styles.TabMenuItem) & Styles.W12C,
+                        () => RenderCurrentcontent = RenderReceivedRequests)
+                ),
+                RefreshReference = RenderCurrentcontent?.Invoke()
+            );
+            //var friends = FriendshipProjection.GetFriends(AccountEntry.ID);
+            //var _friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(a => AccountProjection[a.AccountID]);
+
+            //return RootController.LocalRendermode switch
+            //{
+            //    LocalRendermode.Default => RenderOverview(_friends),
+            //    LocalRendermode.AddFriend => RenderAddFriend(),
+            //    LocalRendermode.DeleteFriend => RenderDeleteFriend(friends.Select(t => new BefriendedAccountEntrySearchWrapper(AccountProjection[t.AccountID], t.FriendshipID))),
+            //    LocalRendermode.PendingRequests => RenderReceivedRequests(),
+            //    _ => null,
+            //};
+        }
+
+        private string GetStyledNumber()
+        {
+            return FriendshipProjection.GetFriendshipRequestCount(AccountEntry.ID) switch
             {
-                RenderMode.Overview => RenderOverview(_friends),
-                RenderMode.AddFriend => RenderAddFriend(),
-                RenderMode.DeleteFriend => RenderDeleteFriend(friends.Select(t => new BefriendedAccountEntrySearchWrapper(AccountProjection[t.AccountID], t.FriendshipID))),
-                RenderMode.PendingRequests => RenderReceivedRequests(),
-                _ => null,
+                0 => "⓿",
+                1 => "❶",
+                2 => "❷",
+                3 => "❸",
+                4 => "❹",
+                5 => "❺",
+                6 => "❻",
+                7 => "❼",
+                8 => "❽",
+                9 => "❾",
+                10 => "❿",
+                11 => "⓫",
+                12 => "⓬",
+                13 => "⓭",
+                _ => "∞",
             };
         }
 
-        private VNode RenderOverview(IEnumerable<AccountEntry> friendAccounts)
+        private VNode RenderOverview()
         {
+            var friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(a => AccountProjection[a.AccountID]);
             return Div(
-                Text($"Pending Friendrequests({FriendshipProjection.GetFriendshipRequestCount(AccountEntry.ID)})", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.PendingRequests),
-                Text("Add Friend", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.AddFriend),
-                Text("Remove Friend", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.DeleteFriend),
-                friendAccounts.Any() ? Fragment(friendAccounts.Select(f => Text($"{f.Username}", !f.LoggedIn ? Styles.TCblack : Styles.TCgreen))) : Text("you got no friends ;(")
+                friends.Any()
+                ? Fragment(friends.Select(f => Row(
+                    Text($"{f.Username}", Styles.TabNameTag),
+                    Text("Remove", Styles.TabButtonSelected, () =>
+                        Friendship.Commands.AbortFriend(FriendshipProjection.GetSpecificFriendshipID(AccountEntry.ID, f.ID).FirstOrDefault()))
+                )))
+                : Text("you got no friends ;(")
             );
         }
 
@@ -54,11 +100,10 @@ namespace VnodeTest.General
         {
             return Div(
                 Fragment(FriendshipProjection.GetFriendshipRequests(AccountEntry.ID).Select(p => Row(
-                    Text(AccountProjection[p.Sender].Username),
-                    Text("accept", Styles.Btn & Styles.MP4, () => Friendship.Commands.AcceptFriendRequest(p.ID)),
-                    Text("deny", Styles.Btn & Styles.MP4, () => Friendship.Commands.DenyFriendRequest(p.ID))
-                ))),
-                Text("back", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.Overview)
+                    Text(AccountProjection[p.Sender].Username, Styles.TabNameTag),
+                    Text("Accept", Styles.TabButton, () => Friendship.Commands.AcceptFriendRequest(p.ID)),
+                    Text("Deny", Styles.TabButtonSelected, () => Friendship.Commands.DenyFriendRequest(p.ID))
+                )))
             );
         }
 
@@ -69,20 +114,20 @@ namespace VnodeTest.General
                 SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(AccountProjection.Accounts
                 .Where(a => !friends.Contains(a.ID) && a.ID != AccountEntry.ID)
                 .Select(a => new BefriendedAccountEntrySearchWrapper(a, default)),
-                    w => Friendship.Commands.RequestFriend(FriendID.Create(), AccountEntry.ID, w.AccountEntry.ID)),
-
-                Text("back", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.Overview)
+                    w => Friendship.Commands.RequestFriend(FriendID.Create(), AccountEntry.ID, w.AccountEntry.ID))
             );
         }
 
-        private VNode RenderDeleteFriend(IEnumerable<BefriendedAccountEntrySearchWrapper> friends)
-        {
-            return Div(
-                SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(friends, w =>
-                    Friendship.Commands.AbortFriend(w.FriendshipID)),
-                Text("back", Styles.Btn & Styles.MP4, () => Rendermode = RenderMode.Overview)
-            );
-        }
+        //private VNode RenderDeleteFriend()
+        //{
+        //    var friends = FriendshipProjection.GetFriends(AccountEntry.ID).Select(t =>
+        //        new BefriendedAccountEntrySearchWrapper(AccountProjection[t.AccountID], t.FriendshipID));
+
+        //    return Div(
+        //        SearchbarComponent<BefriendedAccountEntrySearchWrapper>.Render(friends, w =>
+        //            Friendship.Commands.AbortFriend(w.FriendshipID))
+        //    );
+        //}
 
         private class BefriendedAccountEntrySearchWrapper : ISearchable
         {
