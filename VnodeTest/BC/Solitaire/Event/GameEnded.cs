@@ -6,9 +6,12 @@ namespace VnodeTest.BC.Solitaire.Event
     public class GameEnded : AggregateEvent<Solitaire>
     {
         public AccountID AccountID { get; }
-        public GameEnded(GameID id, AccountID accountID) : base(id)
+        public int Score { get; }
+
+        public GameEnded(GameID id, AccountID accountID, int score) : base(id)
         {
             AccountID = accountID;
+            Score = score;
         }
 
     }

@@ -21,8 +21,8 @@ namespace VnodeTest
                    .Take(pageSize)
                    .Select(e => renderEntry(e).WithOnclick(() => selectEntry?.Invoke(e)))),
                 Row(
-                    Button("Previous", Styles.Btn, () => state.SetPageNumber(collection, -1, pageSize)),
-                    Button("Next", Styles.Btn, () => state.SetPageNumber(collection, +1, pageSize))
+                    Button("Previous", Styles.TabButtonSmall, () => state.SetPageNumber(collection, -1, pageSize)),
+                    Button("Next", Styles.TabButtonSmall, () => state.SetPageNumber(collection, +1, pageSize))
             )));
         }
         private void SetPageNumber(IEnumerable<T> collection, int direction, int pageSize)

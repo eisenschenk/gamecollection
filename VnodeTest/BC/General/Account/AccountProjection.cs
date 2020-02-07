@@ -22,6 +22,7 @@ namespace VnodeTest.BC.General.Account
         {
         }
 
+#pragma warning disable IDE0051
         private void On(AccountRegistered @event)
         {
             Dict.Add(@event.ID, new AccountEntry(@event.ID, @event.Username, @event.Password, @event.Timestamp));
@@ -34,13 +35,47 @@ namespace VnodeTest.BC.General.Account
         {
             Dict[@event.ID].LoggedIn = false;
         }
-
-
-
+        private void On(UsernameChanged @event)
+        {
+            Dict[@event.ID].ChangeUsername(@event.NewUsername);
+        }
+        private void On(PasswordChanged @event)
+        {
+            Dict[@event.ID].ChangePassword(@event.NewPassword);
+        }
+        private void On(IconChanged @event)
+        {
+            Dict[@event.ID].ChangeIcon(@event.NewIcon);
+        }
+#pragma warning restore
         public void LogoutAllAccounts()
         {
             foreach (AccountEntry entry in Accounts)
                 entry.LoggedIn = false;
+        }
+
+        public IEnumerable<string> GetIcons()
+        {
+            string[] icons =
+           {
+                "fas fa-question",
+                "fas fa-otter",
+                "fas fa-paw",
+                "fas fa-hippo",
+                "fas fa-dog",
+                "fas fa-spider",
+                "fas fa-horse",
+                "fas fa-frog",
+                "fas fa-fish",
+                "fas fa-dragon",
+                "fas fa-crow",
+                "fas fa-cat",
+                "fas fa-dove",
+                "fas fa-kiwi-bird",
+            };
+
+            return icons;
+
         }
     }
 
@@ -48,10 +83,28 @@ namespace VnodeTest.BC.General.Account
     public class AccountEntry
     {
         public AccountID ID { get; }
-        public string Username { get; }
-        public string Password { get; }
+        public string Username { get; private set; }
+        public string Password { get; private set; }
         public DateTimeOffset CreatedAt { get; }
         public bool LoggedIn { get; set; }
+        public bool HasUpdated;
+        private string _Icon;
+        public string Icon
+        {
+            get
+            {
+                if (_Icon == default)
+                    return "fas fa-question";
+                return _Icon;
+            }
+            private set
+            {
+                if (_Icon == value)
+                    return;
+                _Icon = value;
+                HasUpdated = true;
+            }
+        }
 
         public AccountEntry(AccountID id, string username, string password, DateTimeOffset createdAt)
         {
@@ -59,6 +112,21 @@ namespace VnodeTest.BC.General.Account
             Username = username;
             Password = password;
             CreatedAt = createdAt;
+        }
+
+        public void ChangeUsername(string newUsername)
+        {
+            Username = newUsername;
+        }
+
+        public void ChangePassword(string newPassword)
+        {
+            Password = newPassword;
+        }
+
+        public void ChangeIcon(string newIcon)
+        {
+            Icon = newIcon;
         }
     }
 }

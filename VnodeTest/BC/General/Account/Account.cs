@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using VnodeTest.BC.General.Account.Command;
 using VnodeTest.BC.General.Account.Event;
 using VnodeTest.General;
+using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
 
 namespace VnodeTest.BC.General.Account
 {
@@ -23,11 +24,17 @@ namespace VnodeTest.BC.General.Account
 
         public static class Commands
         {
-            public static void RegisterAccount(AggregateID<Account> id, string username, string password) =>
+            public static void RegisterAccount(AccountID id, string username, string password) =>
                MessageBus.Instance.Send(new RegisterAccount(id, username, password));
-            public static void LoginAccount(AggregateID<Account> id, string password) =>
+            public static void LoginAccount(AccountID id, string password) =>
                 MessageBus.Instance.Send(new LoginAccount(id, password));
-            public static void LogoutAccount(AggregateID<Account> id) => MessageBus.Instance.Send(new LogoutAccount(id));
+            public static void LogoutAccount(AccountID id) => MessageBus.Instance.Send(new LogoutAccount(id));
+            public static void ChangeUsername(AccountID id, string username) =>
+                MessageBus.Instance.Send(new ChangeUsername(id, username));
+            public static void ChangePassword(AccountID id, string oldPassword, string newPassword) =>
+                MessageBus.Instance.Send(new ChangePassword(id, oldPassword, newPassword));
+            public static void ChangeIcon(AccountID id, string newIcon) =>
+                MessageBus.Instance.Send(new ChangeIcon(id, newIcon));
         }
 
         public IEnumerable<IEvent> On(RegisterAccount command)
@@ -40,9 +47,24 @@ namespace VnodeTest.BC.General.Account
                 throw new ArgumentException("password not correct");
             yield return new AccountLoggedIn(command.ID);
         }
-        public IEnumerable<IEvent> On(Account command)
+        public IEnumerable<IEvent> On(LogoutAccount command)
         {
             yield return new AccountLoggedOut(command.ID);
+        }
+
+        public IEnumerable<IEvent> On(ChangeUsername command)
+        {
+            yield return new UsernameChanged(command.ID, command.NewUsername);
+        }
+        public IEnumerable<IEvent> On(ChangePassword command)
+        {
+            if (!PasswordHelper.IsPasswordMatch(command.OldPassword, Password))
+                throw new ArgumentException("password not correct");
+            yield return new PasswordChanged(command.ID, PasswordHelper.HashAndSalt(command.NewPassword));
+        }
+        public IEnumerable<IEvent> On(ChangeIcon command)
+        {
+            yield return new IconChanged(command.ID, command.NewIcon);
         }
         public override void Apply(IEvent @event)
         {
@@ -50,6 +72,9 @@ namespace VnodeTest.BC.General.Account
             {
                 case AccountRegistered registered:
                     Password = registered.Password;
+                    break;
+                case PasswordChanged changedPW:
+                    Password = changedPW.NewPassword;
                     break;
             }
         }

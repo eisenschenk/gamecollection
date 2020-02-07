@@ -7,9 +7,12 @@ namespace VnodeTest.BC.Solitaire.Command
     public class EndGame : AggregateCommand<Solitaire>
     {
         public AccountID AccountID { get; }
-        public EndGame(GameID id, AccountID accountID) : base(id)
+        public int Score { get; }
+
+        public EndGame(GameID id, AccountID accountID, int score) : base(id)
         {
             AccountID = accountID;
+            Score = score;
         }
 
     }

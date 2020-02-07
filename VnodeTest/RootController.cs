@@ -12,6 +12,7 @@ using VnodeTest.Solitaire;
 using static VnodeTest.General.FriendshipController;
 using System.Linq;
 using System.Threading;
+using VnodeTest.General.Sidebar;
 
 namespace VnodeTest
 {
@@ -19,7 +20,7 @@ namespace VnodeTest
     {
         private readonly Session Session;
         public AccountEntry AccountEntry => LoginController.CurrentUser;
-        private VNode CurrentContent;
+        private Func<VNode> CurrentContent;
         private ChessGameID ChessGameID => AccountEntry != null ? ChessController?.GameProjection.GetGameID(AccountEntry.ID) ?? default : default;
         private ChessGameID SolitaireGameID = default;
         public Rendermode Rendermode { get; set; } = Rendermode.Default;
@@ -41,12 +42,25 @@ namespace VnodeTest
                         HasRefreshed = false;
                     if (AccountEntry != default && ChessGameID != default && HasRefreshed == false)
                     {
-                        SidebarModule.CurrentContent = ChessController.Render;
+                        CurrentContent = ChessController.Render;
                         HasRefreshed = true;
                     }
                 }
             });
         }
+
+        private IEnumerable<SidebarBaseEntry> GetSidebarEntries => new SidebarBaseEntry[]
+        {
+            new SidebarMainItem(AccountEntry.Username, AccountEntry.Icon),
+
+            new SidebarMainItem("Games", "fab fa-steam"),
+            new SidebarSubItem("Chess", "fas fa-chess",CurrentContent == GameSelectionController.Render || CurrentContent == ChessController.Render,() =>  CurrentContent = GameSelectionController.Render),
+            new SidebarSubItem("Solitaire", "fas fa-dice",CurrentContent == SolitaireController.Render,() =>  CurrentContent = SolitaireController.Render),
+
+            new SidebarMainItem("Account", "fas fa-user-circle"),
+            new SidebarSubItem("Friends", "fas fa-user-friends", CurrentContent == FriendshipController.Render,() =>  CurrentContent = FriendshipController.Render),
+            new SidebarSubItem("Settigns", "fas fa-cog", CurrentContent == SettingsController.Render, () => CurrentContent = SettingsController.Render)
+        };
 
         public VNode Render()
         {
@@ -54,13 +68,13 @@ namespace VnodeTest
                 return LoginController.Render();
 
             if (SidebarModule == default)
-                SidebarModule = new SidebarModule(AccountEntry, ChessController, SolitaireController, GameSelectionController, FriendshipController);
+                SidebarModule = new SidebarModule(GetSidebarEntries);
 
             return Row(
-                SidebarModule.Render(),
+                SidebarModule?.Render(),
                 Div(
                     Styles.MainWindow,
-                    CurrentContent = SidebarModule.CurrentContent?.Invoke()
+                    CurrentContent?.Invoke()
                 )
             );
         }
@@ -80,13 +94,17 @@ namespace VnodeTest
         private FriendshipController FriendshipController =>
             _FriendshipController ??= ((Application)Application.Instance).GeneralContext.CreateFriendshipController(AccountEntry, this);
 
+        private SettingsController _SettingsController;
+        private SettingsController SettingsController =>
+            _SettingsController ??= ((Application)Application.Instance).GeneralContext.CreateSettingsController(AccountEntry);
+
         private GameSelectionController _GameSelectionController;
         private GameSelectionController GameSelectionController =>
             _GameSelectionController ??= ((Application)Application.Instance).ChessContext.CreateGameSelectionController(AccountEntry);
 
         private SolitaireController _SolitaireController;
         private SolitaireController SolitaireController =>
-            _SolitaireController ??= ((Application)Application.Instance).SolitaireContext.CreateSolitaireController(AccountEntry.ID, this);
+            _SolitaireController ??= ((Application)Application.Instance).SolitaireContext.CreateSolitaireController(AccountEntry.ID);
 
 
     }

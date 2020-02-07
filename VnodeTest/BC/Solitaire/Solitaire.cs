@@ -21,8 +21,8 @@ namespace VnodeTest.BC.Solitaire
         {
             public static void OpenGame(GameID id, AccountID accountID) =>
                             MessageBus.Instance.Send(new OpenGame(id, accountID));
-            public static void EndGame(GameID id, AccountID accountID) =>
-                MessageBus.Instance.Send(new EndGame(id, accountID));
+            public static void EndGame(GameID id, AccountID accountID, int score) =>
+                MessageBus.Instance.Send(new EndGame(id, accountID, score));
             public static void JoinGame(GameID id, AccountID accountID) =>
                 MessageBus.Instance.Send(new JoinGame(id, accountID));
         }
@@ -33,7 +33,7 @@ namespace VnodeTest.BC.Solitaire
         }
         public IEnumerable<IEvent> On(EndGame command)
         {
-            yield return new GameEnded(command.ID, command.AccountID);
+            yield return new GameEnded(command.ID, command.AccountID, command.Score);
         }
         public IEnumerable<IEvent> On(JoinGame command)
         {

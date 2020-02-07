@@ -15,23 +15,26 @@ using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
 
 namespace VnodeTest.Solitaire
 {
-    public class SolitaireController
+    //TODO: resume game deosnt give last game after restarting the engine
+    public partial class SolitaireController
     {
         private GameID GameID /*=> LastPlayedgame == default ? SolitaireProjection.GetGameID(AccountID) : LastPlayedgame*/;
+
+        public AccountProjection AccountProjection { get; }
         private AccountID AccountID { get; }
-        public RootController RootController { get; set; }
 
         private GameID LastPlayedgame => SolitaireProjection.GetLastPlayedGame(AccountID);
         private Gameboard GameBoard => GameID != default ? SolitaireProjection[GameID].GameBoard : null;
         private Card Selected;
+        private ScoreTimespan ScoreOfTimespan = ScoreTimespan.Alltime;
 
         private SolitaireProjection SolitaireProjection;
 
-        public SolitaireController(SolitaireProjection solitaireProjection, AccountID accountID, RootController rootController)
+        public SolitaireController(SolitaireProjection solitaireProjection, AccountProjection accountProjection, AccountID accountID)
         {
             SolitaireProjection = solitaireProjection;
+            AccountProjection = accountProjection;
             AccountID = accountID;
-            RootController = rootController;
         }
 
         public VNode Render()
@@ -47,25 +50,57 @@ namespace VnodeTest.Solitaire
                 GameID = LastPlayedgame;
                 BC.Solitaire.Solitaire.Commands.JoinGame(GameID, AccountID);
             }
+
+            VNode highscore(IEnumerable<GameEntry> gameEntries, string title)
+            {
+                return Div(
+                     Styles.TabNameTag & Styles.FitContent & Styles.Fontcopperplate & Styles.Underline & Styles.MY2,
+                    Text(title),
+                    Fragment(gameEntries.ToList().Select(e =>
+                        Row(
+                            Styles.Fontcopperplate,
+                            Text($"{gameEntries.ToList().IndexOf(e) + 1}", Styles.MX2 & Styles.W3C),
+                            Text(e.FinalScore.ToString(), Styles.W3C & Styles.TextAlignR),
+                            Text(AccountProjection[e.Player].Username, Styles.MX2 & Styles.W4C & Styles.TextAlignR)
+                ))));
+            }
+
             if (GameID == default)
             {
                 VNode continueLastGame = null;
                 if (LastPlayedgame != default)
-                    continueLastGame = Text("Continue Last Game", Styles.Btn & Styles.MP4, () => joinOldGame());
+                    continueLastGame = Text("Continue Last Game", Styles.TabButton & Styles.W12C, () => joinOldGame());
                 return Div(
-                    continueLastGame,
-                    Text("Start New Game", Styles.Btn & Styles.MP4, () => startNewGame()),
-                    Text("Back", Styles.Btn & Styles.MP4, () => RootController.Rendermode = Rendermode.GameSelection)
+                    Row(
+                        continueLastGame,
+                        Text("Start New Game", Styles.TabButton, () => startNewGame())
+                    ),
+                    //dropdown here
+                    Div(
+                        Styles.P4 & Styles.TabNameTagNoWidth & Styles.W8C,
+                        DropdownComponent<ScoreTimespan>.Render(GetScoreTimeSpan(), a => ScoreOfTimespan = a, ScoreOfTimespan.ToString(), s => Text(s.ToString()))
+                    ),
+                    Row(
+                       highscore(SolitaireProjection.GetPersonalHighscore(ScoreOfTimespan, AccountID), "Personal Highscore"),
+                       highscore(SolitaireProjection.GetGlobalHighscore(ScoreOfTimespan), "Global Highscore")
+                    )
                 );
             }
             return RenderGameboard();
+        }
 
+        private IEnumerable<ScoreTimespan> GetScoreTimeSpan()
+        {
+            return Enumerable.Empty<ScoreTimespan>()
+                .Append(ScoreTimespan.Alltime)
+                .Append(ScoreTimespan.ThreeMonths)
+                .Append(ScoreTimespan.TwelveMonths);
         }
 
         private VNode RenderGameboard()
         {
             return Div(
-                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID); GameID = default; }),
+                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID, GameBoard.Score); GameID = default; }),
                 Row(
                     Row(
                         Styles.FitContent & Styles.W33,

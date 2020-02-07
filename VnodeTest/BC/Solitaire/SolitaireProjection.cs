@@ -9,6 +9,7 @@ using VnodeTest.Solitaire.GameEntities;
 using GameID = ACL.ES.AggregateID<VnodeTest.BC.Solitaire.Solitaire>;
 using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
 using VnodeTest.BC.Solitaire.Event;
+using static VnodeTest.Solitaire.SolitaireController;
 
 namespace VnodeTest.BC.Solitaire
 {
@@ -32,6 +33,7 @@ namespace VnodeTest.BC.Solitaire
         private void On(GameEnded @event)
         {
             Dict[@event.ID].Closed = true;
+            Dict[@event.ID].FinalScore = @event.Score;
         }
 
         private void On(Gamejoined @event)
@@ -52,15 +54,36 @@ namespace VnodeTest.BC.Solitaire
                 return default;
             return gameid;
         }
+
+        public IEnumerable<GameEntry> GetGlobalHighscore(ScoreTimespan scoreTimespan, int count = 10)
+        {
+            return Dict?.Values.Where(t => t.DateCreated > GetTime(scoreTimespan)).OrderByDescending(s => s.FinalScore).Take(count);
+        }
+
+        public IEnumerable<GameEntry> GetPersonalHighscore(ScoreTimespan scoreTimespan, AccountID accountID, int count = 10)
+        {
+            return Dict?.Values.Where(g => g.Player == accountID && g.DateCreated > GetTime(scoreTimespan)).OrderByDescending(s => s.FinalScore).Take(count);
+        }
+
+        private DateTime GetTime(ScoreTimespan scoreTimespan)
+        {
+            return scoreTimespan switch
+            {
+                ScoreTimespan.Alltime => new DateTime(1900, 12, 24),
+                ScoreTimespan.ThreeMonths => DateTime.Now - new TimeSpan(90, 0, 0, 0),
+                ScoreTimespan.TwelveMonths => DateTime.Now - new TimeSpan(365, 0, 0, 0),
+            };
+        }
     }
 
     public class GameEntry
     {
-        public Gameboard GameBoard { get; private set; } = new Gameboard();
+        public Gameboard GameBoard { get; set; } = new Gameboard();
         public GameID ID { get; }
         public AccountID Player { get; set; }
         public bool Closed { get; set; }
         public DateTimeOffset DateCreated { get; }
+        public int FinalScore { get; set; }
 
         public GameEntry(GameID gameID, DateTimeOffset dateCreated)
         {

@@ -50,34 +50,9 @@ namespace VnodeTest.General
 
         public FriendshipController CreateFriendshipController(AccountEntry accountEntry, RootController rootController) =>
             new FriendshipController(accountEntry, AccountProjection, ((Application)Application.Instance).ChessContext.ChessProjection, FriendshipProjection, rootController);
+
+        public SettingsController CreateSettingsController(AccountEntry accountEntry) =>
+            new SettingsController(accountEntry, AccountProjection);
     }
-
-        //public (JSONFileEventStore Store, Repository Repository) CreateStore(string storename, string nameSpace)
-        //{
-        //    string storePath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), storename);
-
-        //    Type tEvent = typeof(IEvent);
-        //    Type tTO = typeof(ITransferObject);
-        //    var allTypes = System.Reflection.Assembly.GetExecutingAssembly().GetTypes();
-        //    var knownTypes = allTypes
-        //        .Where(t => t.Namespace.StartsWith($"{nameof(VnodeTest)}.{nameof(BC)}.{nameof(nameSpace)}"))
-        //        .Where(t => !t.IsAbstract)
-        //        .Where(t => t.IsClass || t.IsValueType)
-        //        .Where(t => tEvent.IsAssignableFrom(t) || tTO.IsAssignableFrom(t)).ToArray();
-
-        //    JSONFileEventStore store = new JSONFileEventStore(storePath, knownTypes);
-        //    var repository = new Repository(store);
-        //    var bus = MessageBus.Instance;
-
-        //    return (store, repository);
-        //}
-        //public GeneralContext()
-        //{
-        //    var accountStore = CreateStore("accounts", nameof(General));
-        //    AccountProjection = new AccountProjection(accountStore.Store, MessageBus.Instance);
-        //    AccountProjection.Init();
-        //    AccountHandler = new Account.Handler(accountStore.Repository, MessageBus.Instance);
-        //}
-
 
 }
