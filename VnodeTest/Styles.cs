@@ -294,6 +294,10 @@ namespace VnodeTest
                 Border("2px solid slategray")
             ),
 
+             Def(BorderChessBoard,
+                Border("5px solid black")
+            ),
+
              Def(BorderWhite,
                 Border("2px solid khaki")
             ),
@@ -600,6 +604,7 @@ namespace VnodeTest
         public static readonly Style TileBlack;
         public static readonly Style TileWhite;
         public static readonly Style BorderBlack;
+        public static readonly Style BorderChessBoard;
         public static readonly Style BorderWhite;
 
 

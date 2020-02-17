@@ -59,6 +59,11 @@ namespace VnodeTest
             };
         }
 
+        public void PauseClock()
+        {
+            LastClockUpdate = DateTime.Now;
+        }
+
         private static ((int X, int Y) start, (int X, int Y) target) ParseEnginemoveToCoordinates(string input)
         {
             var start = ParseStringToInt(input[0].ToString(), input[1].ToString());

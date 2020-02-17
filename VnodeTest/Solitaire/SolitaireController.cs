@@ -101,7 +101,7 @@ namespace VnodeTest.Solitaire
         private VNode RenderGameboard()
         {
             return Div(
-                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID, GetCorrectScore()); GameID = default; }),
+                Text("Surrender", Styles.TabButtonSelected, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID, GetCorrectScore()); GameID = default; }),
                 Row(
                     Row(
                         Styles.FitContent & Styles.W33,
@@ -159,7 +159,7 @@ namespace VnodeTest.Solitaire
         public VNode RenderScore()
         {
             return Row(
-                Styles.BorderedBoxPurple & Styles.Ml6,
+                Styles.TabNameTagNoWidth & Styles.Ml6,
                 Text($"Score:", Styles.W3C),
                 Text(GameBoard.Score.ToString(), Styles.TextAlignR & Styles.W3C)
             );

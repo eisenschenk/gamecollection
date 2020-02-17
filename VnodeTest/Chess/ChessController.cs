@@ -48,7 +48,10 @@ namespace VnodeTest.Chess
                 while (true)
                 {
                     while (Game != default ? Game.Pause : false)
+                    {
                         Thread.Sleep(100);
+                        Game.PauseClock();
+                    }
                     Thread.Sleep(100);
                     Game?.UpdateClocks();
                     RefreshReference?.Refresh();
@@ -109,13 +112,13 @@ namespace VnodeTest.Chess
             VNode SurrenderOrClose()
             {
                 if (!Game.Winner.HasValue)
-                    return Text("Surrender", Styles.AbortBtn & Styles.MP4, () =>
+                    return Text("Surrender", Styles.TabButtonSelected & Styles.MP4, () =>
                     {
                         SetWinner();
                         Chessgame.Commands.EndGame(GameID, Allmoves());
                     });
                 else
-                    return Text("Game Over", Styles.AbortBtn & Styles.MP4, () =>
+                    return Text("Game Over", Styles.TabButtonSelected & Styles.MP4, () =>
                     {
                         LastGame = default;
                     });
@@ -123,25 +126,27 @@ namespace VnodeTest.Chess
             VNode board = default;
             if (Game != null)
                 board = GetBoardVNode(Gameboard, Game.Lastmove);
-            //else
-            //{
-            //    var lastgame = GameProjection.GetLastPlayedGame(AccountEntry.ID);
-            //    if (LastGame != default)
-            //        board = GetBoardVNode(lastgame.ChessBoard, lastgame.Lastmove);
-            //}
 
             return Div(
                 //top of the gameboard
-                SurrenderOrClose(),
+                Row(
+                    SurrenderOrClose(),
+                    Text($"White: {Game.WhiteClock:hh\\:mm\\:ss} | Black: {Game.BlackClock:hh\\:mm\\:ss}", Styles.TabNameTagNoWidth)
+                ),
                 //right side of gameboard
                 Row(
-                    Div(SelectedPreviousMove.Board != null ? GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove) : board),
-                    Div(Text("Pause", Styles.AbortBtn & Styles.MP4, PauseGame), RenderPreviousMoves())
+                    Div(Styles.BorderChessBoard, SelectedPreviousMove.Board != null ? GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove) : board),
+                    Div(
+                        Game.Pause
+                            ? Text("Resume", Styles.TabButtonSelected & Styles.MP4, PauseGame)
+                            : Text("Pause", Styles.TabButton & Styles.MP4, PauseGame), 
+                        RenderPreviousMoves()
+
+                    )
                 ),
                 //below gameboard
-                Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
-                Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
-                Text($"Gameroom: {Game.ID}"),
+                //Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
+                //Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
                 Game.GameOver ? RenderGameOver() : null
             );
         }
@@ -256,6 +261,8 @@ namespace VnodeTest.Chess
                 _ => ""
             };
         }
+
+        //TODO pause not working @chess
 
         private VNode RenderGameOver()
         {
