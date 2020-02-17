@@ -18,9 +18,6 @@ namespace VnodeTest.General
         public FriendshipProjection FriendshipProjection { get; }
         private VNode RefreshReference;
         private Func<VNode> RenderCurrentcontent;
-        //public RootController RootController { get; set; }
-
-        //private LocalRendermode Rendermode = LocalRendermode.Default;
 
         public FriendshipController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection gameProjection,
             FriendshipProjection friendshipProjection, RootController rootController)
@@ -29,7 +26,7 @@ namespace VnodeTest.General
             AccountProjection = accountProjection;
             GameProjection = gameProjection;
             FriendshipProjection = friendshipProjection;
-            //RootController = rootController;
+            RenderCurrentcontent = RenderOverview;
         }
 
         public VNode Render()
@@ -47,17 +44,6 @@ namespace VnodeTest.General
                 ),
                 RefreshReference = RenderCurrentcontent?.Invoke()
             );
-            //var friends = FriendshipProjection.GetFriends(AccountEntry.ID);
-            //var _friends = FriendshipProjection.GetFriends(AccountEntry.ID)?.Select(a => AccountProjection[a.AccountID]);
-
-            //return RootController.LocalRendermode switch
-            //{
-            //    LocalRendermode.Default => RenderOverview(_friends),
-            //    LocalRendermode.AddFriend => RenderAddFriend(),
-            //    LocalRendermode.DeleteFriend => RenderDeleteFriend(friends.Select(t => new BefriendedAccountEntrySearchWrapper(AccountProjection[t.AccountID], t.FriendshipID))),
-            //    LocalRendermode.PendingRequests => RenderReceivedRequests(),
-            //    _ => null,
-            //};
         }
 
         private string GetStyledNumber()

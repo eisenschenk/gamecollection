@@ -24,15 +24,13 @@ namespace VnodeTest.Chess
     {
         private GameID GameID => GameProjection.GetGameID(AccountEntry.ID);
         public Game Game => GetCurrentGame();
-        public Game LastGame { get; private set; }
-        private ChessBoard Gameboard => Game?.ChessBoard;
+        public Game LastGame { get; set; }
+        private ChessBoard Gameboard => Game != null ? Game.ChessBoard : LastGame?.ChessBoard;
         private VNode RefreshReference;
         private PieceColor PlayerColor => GameProjection.GetSpecificPlayerColor(AccountEntry.ID, Game);
         private Piece Selected;
-        //TODO: rework
         private Piece[] PromotionSelect = new Piece[4];
         private (ChessBoard Board, (Piece start, (int X, int Y) target) LastMove) SelectedPreviousMove;
-        //private RenderClockTimer RenderClockTimerMode = RenderClockTimer.Default;
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
         public ChessgameProjection GameProjection { get; set; }
@@ -74,7 +72,9 @@ namespace VnodeTest.Chess
         {
             if (Game != default && Game.IsPromotable && PlayerColor != Game.CurrentPlayerColor)
                 return RenderPromotionSelection();
-            return RenderBoard();
+            if (Game != default)
+                return RenderBoard();
+            return null;
 
         }
 
@@ -120,14 +120,15 @@ namespace VnodeTest.Chess
                         LastGame = default;
                     });
             }
-            VNode board;
+            VNode board = default;
             if (Game != null)
                 board = GetBoardVNode(Gameboard, Game.Lastmove);
-            else
-            {
-                var lastgame = GameProjection.GetLastPlayedGame(AccountEntry.ID);
-                board = GetBoardVNode(lastgame.ChessBoard, lastgame.Lastmove);
-            }
+            //else
+            //{
+            //    var lastgame = GameProjection.GetLastPlayedGame(AccountEntry.ID);
+            //    if (LastGame != default)
+            //        board = GetBoardVNode(lastgame.ChessBoard, lastgame.Lastmove);
+            //}
 
             return Div(
                 //top of the gameboard

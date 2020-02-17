@@ -30,6 +30,7 @@ namespace VnodeTest.General
             AccountEntry = accountEntry;
             AccountProjection = accountProjection;
             CurrentContent = RenderPersonalInfo;
+            Icon = accountEntry.Icon;
         }
 
         public VNode Render() => Div(RenderMenuItems(), CurrentContent());
@@ -63,14 +64,9 @@ namespace VnodeTest.General
                     Styles.TabNameTagNoWidth & Styles.FitContent,
                     Text("Change Icon", Styles.Fontcopperplate & Styles.Underline & Styles.MB2P5rem),
                     Row(
-                        Text("Current Icon:", Styles.W7C),
-                        DOM.Icon(AccountEntry.Icon != default ? AccountEntry.Icon : "fas fa-question-circle")
-                    ),
-                    DropdownComponent<string>.Render(AccountProjection.GetIcons(), i => Icon = i, "Select Icon", i => Div(DOM.Icon(i, Styles.TCblack))),
-                    Row(
-                        Text("New Icon:", Styles.W7C),
-                        DOM.Icon(Icon != default ? Icon : "fas fa-question-circle"),
-                        Text("Apply", Styles.BtnSettings & Styles.MX2, () => Account.Commands.ChangeIcon(AccountEntry.ID, Icon))
+                        DropdownComponent<string>.Render(AccountProjection.GetIcons(), i => Icon = i, "Change Icon", i => Div(DOM.Icon(i, Styles.TCblack))),
+                        DOM.Icon(Icon != default ? Icon : "fas fa-question-circle", Styles.MX1),
+                        Text("Apply", Styles.BtnSettings & Styles.MX1, () => Account.Commands.ChangeIcon(AccountEntry.ID, Icon))
                     )
                 )
             );

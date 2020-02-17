@@ -84,6 +84,11 @@ namespace VnodeTest
                 MarginRight("2px")
             ),
 
+            Def(MX1,
+                MarginLeft("1rem"),
+                MarginRight("1rem")
+            ),
+
             Def(MY1,
                 MarginTop("1rem"),
                 MarginBottom("1rem")
@@ -622,6 +627,7 @@ namespace VnodeTest
         public static readonly Style MP2;
         public static readonly Style Ml6;
         public static readonly Style MX2;
+        public static readonly Style MX1;
         public static readonly Style MY1;
         public static readonly Style MY2;
         public static readonly Style MY6;

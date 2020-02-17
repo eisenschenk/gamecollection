@@ -14,7 +14,7 @@ namespace VnodeTest.General
         private AccountProjection AccountProjection;
         private string Username;
         private string Password;
-        public AccountEntry CurrentUser;
+        public AccountEntry CurrentUser { get; set; }
         private Rendermode CurrentRendermode = Rendermode.Default;
         private Func<VNode> CurrentContent;
 

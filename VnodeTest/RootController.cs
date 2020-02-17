@@ -28,6 +28,7 @@ namespace VnodeTest
         public Stack<Crumb> BreadCrumbs { get; } = new Stack<Crumb>();
         public SidebarModule SidebarModule { get; set; } = default;
         private bool HasRefreshed;
+        private VNode Refreshreference;
 
 
 
@@ -38,6 +39,8 @@ namespace VnodeTest
             {
                 while (true)
                 {
+                    Thread.Sleep(100);
+                    Refreshreference?.Refresh();
                     if (AccountEntry != default && ChessGameID == default && ChessController.LastGame == default)
                         HasRefreshed = false;
                     if (AccountEntry != default && ChessGameID != default && HasRefreshed == false)
@@ -54,11 +57,21 @@ namespace VnodeTest
             new SidebarMainItem(AccountEntry.Username, AccountEntry.Icon),
 
             new SidebarMainItem("Games", "fab fa-steam"),
-            new SidebarSubItem("Chess", "fas fa-chess",CurrentContent == GameSelectionController.Render || CurrentContent == ChessController.Render,() =>  CurrentContent = GameSelectionController.Render),
-            new SidebarSubItem("Solitaire", "fas fa-dice",CurrentContent == SolitaireController.Render,() =>  CurrentContent = SolitaireController.Render),
+            new SidebarSubItem("Chess", "fas fa-chess",CurrentContent == GameSelectionController.Render || CurrentContent == ChessController.Render,
+                () => //fix so the game can be resumed after navigating somewhere else in the menu
+                {
+                    if ( ChessGameID == default)
+                    {
+                        CurrentContent = GameSelectionController.Render;
+                        ChessController.LastGame = default; //hack (if surrendered but game was still displayed, navigating in mneu broke the chesscontroller.render logic)
+                    }
+                    else
+                        CurrentContent = ChessController.Render;
+                }),
+            new SidebarSubItem("Solitaire", "fas fa-dice", CurrentContent == SolitaireController.Render, () =>  CurrentContent = SolitaireController.Render),
 
             new SidebarMainItem("Account", "fas fa-user-circle"),
-            new SidebarSubItem("Friends", "fas fa-user-friends", CurrentContent == FriendshipController.Render,() =>  CurrentContent = FriendshipController.Render),
+            new SidebarSubItem("Friends", "fas fa-user-friends", CurrentContent == FriendshipController.Render, () =>  CurrentContent = FriendshipController.Render),
             new SidebarSubItem("Settigns", "fas fa-cog", CurrentContent == SettingsController.Render, () => CurrentContent = SettingsController.Render)
         };
 
@@ -67,10 +80,9 @@ namespace VnodeTest
             if (AccountEntry == null)
                 return LoginController.Render();
 
-            if (SidebarModule == default)
-                SidebarModule = new SidebarModule(GetSidebarEntries);
+            SidebarModule = new SidebarModule(GetSidebarEntries);
 
-            return Row(
+            return Refreshreference = Row(
                 SidebarModule?.Render(),
                 Div(
                     Styles.MainWindow,

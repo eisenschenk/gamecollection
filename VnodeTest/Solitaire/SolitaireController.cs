@@ -27,6 +27,7 @@ namespace VnodeTest.Solitaire
         private Gameboard GameBoard => GameID != default ? SolitaireProjection[GameID].GameBoard : null;
         private Card Selected;
         private ScoreTimespan ScoreOfTimespan = ScoreTimespan.Alltime;
+        private bool HasClosedCards => GameBoard != null ? GameBoard.GamePiles.Where(x => x.Any(c => !c.IsFaceUp)).Any() : true;
 
         private SolitaireProjection SolitaireProjection;
 
@@ -100,7 +101,7 @@ namespace VnodeTest.Solitaire
         private VNode RenderGameboard()
         {
             return Div(
-                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID, GameBoard.Score); GameID = default; }),
+                Text("Surrender", Styles.Btn & Styles.MP4, () => { BC.Solitaire.Solitaire.Commands.EndGame(GameID, AccountID, GetCorrectScore()); GameID = default; }),
                 Row(
                     Row(
                         Styles.FitContent & Styles.W33,
@@ -115,17 +116,21 @@ namespace VnodeTest.Solitaire
             );
         }
 
+        private int GetCorrectScore()
+        {
+            if (HasClosedCards)
+                return GameBoard.Score;
+            return 520 - GameBoard.Tableau.GraveyardTurnedOverCounter * 20;
+        }
+
         private VNode RenderWin()
         {
-            var hasClosedCards = GameBoard.GamePiles
-                .Where(x => x.Any(c => !c.IsFaceUp))
-                .Any();
-            if (hasClosedCards)
+            if (HasClosedCards)
                 return null;
             return Div(
                 Styles.TCgreen & Styles.WinBox & Styles.AlignItemCenter & Styles.MT2,
                 Text($"You Won!", Styles.FontSize3),
-                Text($"Score: {GameBoard.Score}", Styles.FontSize3)
+                Text($"Score: {GetCorrectScore()}", Styles.FontSize3)
                 );
         }
 
