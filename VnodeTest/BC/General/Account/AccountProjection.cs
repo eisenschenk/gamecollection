@@ -47,6 +47,10 @@ namespace VnodeTest.BC.General.Account
         {
             Dict[@event.ID].ChangeIcon(@event.NewIcon);
         }
+        private void On(AutomaticPromotionChanged @event)
+        {
+            Dict[@event.ID].AutomaticPromotion = !Dict[@event.ID].AutomaticPromotion;
+        }
 #pragma warning restore
         public void LogoutAllAccounts()
         {
@@ -87,7 +91,8 @@ namespace VnodeTest.BC.General.Account
         public string Password { get; private set; }
         public DateTimeOffset CreatedAt { get; }
         public bool LoggedIn { get; set; }
-        public bool HasUpdated;
+        public bool HasUpdated { get; set; }
+        public bool AutomaticPromotion { get; set; }
         private string _Icon;
         public string Icon
         {

@@ -35,6 +35,10 @@ namespace VnodeTest
                 Color("green")
             ),
 
+             Def(TCToggle,
+                Color("lawngreen")
+            ),
+
             Def(Dropdown
                 , Display("block")
                 , Position("absolute")
@@ -287,7 +291,7 @@ namespace VnodeTest
             ),
 
             Def(Selected,
-                Border("2px dashed purple")
+                Border("2px dashed brown")
             ),
 
             Def(BorderBlack,
@@ -534,6 +538,15 @@ namespace VnodeTest
                 BackgroundColor("cadetblue")
             ),
 
+            Def(LoginRegister,
+                Width("100%"),
+                Height("100%"),
+                PaddingLeft("15%"),
+                Position("fixed"),
+                Top(""),
+                BackgroundColor("cadetblue")
+            ),
+
             Def(P15P,
                  PaddingLeft("15%")
             ),
@@ -544,6 +557,10 @@ namespace VnodeTest
 
             Def(W25,
                 Width("25%")
+            ),
+
+            Def(MinW25,
+                MinWidth("25%")
             ),
 
             Def(W33,
@@ -620,6 +637,7 @@ namespace VnodeTest
         public static readonly Style TCred;
         public static readonly Style TCwhite;
         public static readonly Style TCgreen;
+        public static readonly Style TCToggle;
 
         public static readonly Style FontSize1p5;
         public static readonly Style FontSize3;
@@ -664,6 +682,7 @@ namespace VnodeTest
         public static readonly Style Sidebar;
         public static readonly Style W15;
         public static readonly Style W25;
+        public static readonly Style MinW25;
         public static readonly Style W33;
         public static readonly Style W50;
         public static readonly Style W75;
@@ -682,6 +701,7 @@ namespace VnodeTest
         public static readonly Style SelectedBtn;
 
         public static readonly Style MainWindow;
+        public static readonly Style LoginRegister;
         public static readonly Style MainMenuItem;
         public static readonly Style SubMenuItem;
         public static readonly Style SubMenuItemSelected;

@@ -12,6 +12,7 @@ using VnodeTest.BC.General.Account;
 using VnodeTest.BC.General.Friendships;
 using VnodeTest.Chess.GameEntities;
 using VnodeTest.GameEntities;
+using VnodeTest.Solitaire.GameEntities;
 using static ACL.UI.React.DOM;
 using GameID = ACL.ES.AggregateID<VnodeTest.BC.Chess.Game.Chessgame>;
 
@@ -34,9 +35,9 @@ namespace VnodeTest.Chess
         private readonly FriendshipProjection FriendshipProjection;
         private readonly AccountProjection AccountProjection;
         public ChessgameProjection GameProjection { get; set; }
-
         private AccountEntry AccountEntry;
-
+        private bool SelectMovePlanning;
+        private ChessBoard MovePlanningBoard;
         public ChessController(AccountEntry accountEntry, AccountProjection accountProjection, ChessgameProjection chessgameProjection, FriendshipProjection friendshipProjection)
         {
             GameProjection = chessgameProjection;
@@ -73,7 +74,7 @@ namespace VnodeTest.Chess
 
         private VNode RenderGameBoard()
         {
-            if (Game != default && Game.IsPromotable && PlayerColor != Game.CurrentPlayerColor)
+            if (Game != default && Game.IsPromotable && PlayerColor == Game.CurrentPlayerColor && !AccountEntry.AutomaticPromotion)
                 return RenderPromotionSelection();
             if (Game != default)
                 return RenderBoard();
@@ -89,32 +90,47 @@ namespace VnodeTest.Chess
                     .Select(row => Row(gameboard.Board
                         .Skip(rowSize * row)
                         .Take(rowSize)
-                        .Select((p, col) => RenderTile(p, col, row, lastmove)))));
+                        .Select((p, col) => RenderTile(p, col, row, gameboard, lastmove)))));
             else
                 return Fragment(Enumerable.Range(0, 8)
                     .Select(row => Row(gameboard.Board
                         .Skip(rowSize * row)
                         .Take(rowSize)
-                        .Select((p, col) => RenderTile(p, col, row, lastmove))
+                        .Select((p, col) => RenderTile(p, col, row, gameboard, lastmove))
                         .Reverse()))
                     );
         }
 
+        private ChessBoard GetMovePlanningBoard()
+        {
+            MovePlanningBoard = new ChessBoard(Gameboard.Board.CopyCurrentBoard(), Gameboard.EnPassantTarget);
+
+            if (PlayerColor == PieceColor.White && Game.WhitePlannedMoves.Any())
+                foreach ((Piece start, (int X, int Y) target) move in Game.WhitePlannedMoves)
+                    MovePlanningBoard = new ChessBoard(MovePlanningBoard.Board.Move(move.start, move.target), MovePlanningBoard.EnPassantTarget);
+
+            else if (PlayerColor == PieceColor.Black && Game.BlackPlannedMoves.Any())
+                foreach ((Piece start, (int X, int Y) target) move in Game.BlackPlannedMoves)
+                    MovePlanningBoard = new ChessBoard(MovePlanningBoard.Board.Move(move.start, move.target), MovePlanningBoard.EnPassantTarget);
+
+            return MovePlanningBoard;
+        }
+
         private VNode RenderBoard()
         {
-            void SetWinner()
+            void setWinner()
             {
                 if (PlayerColor == PieceColor.Black)
                     Game.Winner = PieceColor.White;
                 else
                     Game.Winner = PieceColor.Black;
             }
-            VNode SurrenderOrClose()
+            VNode surrenderOrClose()
             {
                 if (!Game.Winner.HasValue)
                     return Text("Surrender", Styles.TabButtonSelected & Styles.MP4, () =>
                     {
-                        SetWinner();
+                        setWinner();
                         Chessgame.Commands.EndGame(GameID, Allmoves());
                     });
                 else
@@ -123,33 +139,37 @@ namespace VnodeTest.Chess
                         LastGame = default;
                     });
             }
-            VNode board = default;
-            if (Game != null)
-                board = GetBoardVNode(Gameboard, Game.Lastmove);
-
+            VNode board()
+            {
+                if (SelectedPreviousMove.Board != null)
+                    return GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove);
+                if (SelectMovePlanning)
+                    return GetBoardVNode(GetMovePlanningBoard(), Game.Lastmove);
+                return GetBoardVNode(Gameboard, Game.Lastmove);
+            }
             return Div(
                 //top of the gameboard
                 Row(
-                    SurrenderOrClose(),
+                    surrenderOrClose(),
+                    Game.Pause
+                            ? Text("Resume", Styles.TabButtonSelected & Styles.MP4 & Styles.MY2, PauseGame)
+                            : Text("Pause", Styles.TabButton & Styles.MP4 & Styles.MY2, PauseGame),
                     Text($"White: {Game.WhiteClock:hh\\:mm\\:ss} | Black: {Game.BlackClock:hh\\:mm\\:ss}", Styles.TabNameTagNoWidth)
                 ),
-                //right side of gameboard
+                //gameboard + right side of gameboard
                 Row(
-                    Div(Styles.BorderChessBoard, SelectedPreviousMove.Board != null ? GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove) : board),
+                    Div(Styles.BorderChessBoard, board()),
                     Div(
-                        Game.Pause
-                            ? Text("Resume", Styles.TabButtonSelected & Styles.MP4, PauseGame)
-                            : Text("Pause", Styles.TabButton & Styles.MP4, PauseGame), 
+                        Text("Preselect Moves", SelectMovePlanning ? Styles.TabButtonSelected : Styles.TabButton, () => SelectMovePlanning = !SelectMovePlanning),
+                        Text("Last Moves:", Styles.TabNameTag),
                         RenderPreviousMoves()
-
                     )
                 ),
                 //below gameboard
-                //Text($"Time remaining White: {Game.WhiteClock:hh\\:mm\\:ss}"),
-                //Text($"Time remaining Black: {Game.BlackClock:hh\\:mm\\:ss}"),
                 Game.GameOver ? RenderGameOver() : null
             );
         }
+
 
         private string Allmoves()
         {
@@ -179,13 +199,13 @@ namespace VnodeTest.Chess
             return Fragment(Game.Moves.ToArray().Select(g =>
                 Game.Moves.IndexOf(g) >= 1
                     ? Text($"Show {Gameboard.ParseToAN(g.LastMove.start, g.LastMove.target, Game.Moves[Game.Moves.IndexOf(g) - 1].Board)}",
-                        Styles.MP4 & (SelectedPreviousMove == g ? Styles.SelectedBtn : Styles.Btn),
+                        Styles.MP4 & (SelectedPreviousMove == g ? Styles.TabButtonSelected : Styles.TabButton),
                         () => SelectForRender(g))
                     : null
             ));
         }
 
-        private VNode RenderTile(Piece piece, int col, int row, (Piece start, (int X, int Y) target) lastmove = default)
+        private VNode RenderTile(Piece piece, int col, int row, ChessBoard gameboard, (Piece start, (int X, int Y) target) lastmove = default)
         {
             var target = (col, row);
             Style lastMove = null;
@@ -196,15 +216,15 @@ namespace VnodeTest.Chess
             if (SelectedPreviousMove.Board == null)
                 return Div(
                     GetBaseStyle(target) & GetSelectedStyle(target) & lastMove,
-                    () => Select(target),
+                    () => Select(target, gameboard),
                     piece != null
-                        ? Text(GetSprite(piece), Styles.FontSize3)
+                        ? Text(GetSprite(piece), Styles.FontSize3 & Styles.TextAlignC)
                         : null
                 );
             else
                 return Div(
                     GetBaseStyle(target) & GetBorderStyle(target) & lastMove,
-                    piece != null ? Text(GetSprite(piece), Styles.FontSize3) : null
+                    piece != null ? Text(GetSprite(piece), Styles.FontSize3 & Styles.TextAlignC) : null
                 );
         }
 
@@ -274,56 +294,76 @@ namespace VnodeTest.Chess
                 case PieceColor.Zero: winner = "Draw"; break;
                 default: winner = "error"; break;
             }
-            return Text($"Gameover! {winner}");
+            return Text($"Gameover! {winner}", Styles.TabNameTagNoWidth & Styles.FitContent);
         }
 
         private VNode RenderPromotionSelection()
         {
-            Selected = Gameboard.Board[Game.Lastmove.target];
-            PromotionSelect[0] = new Rook((0, 0), Selected.Color, PieceValue.Rook, (0, 0), true);
-            PromotionSelect[1] = new Knight((1, 0), Selected.Color, PieceValue.Knight, (1, 0), true);
-            PromotionSelect[2] = new Bishop((2, 0), Selected.Color, PieceValue.Bishop, (2, 0), true);
-            PromotionSelect[3] = new Queen((3, 0), Selected.Color, PieceValue.Queen, (3, 0), true);
             return Div(
-                Styles.M2,
                 Text($"Select Piece you want the Pawn to be promoted to.", Styles.FontSize1p5),
-                Row(Fragment(PromotionSelect.Select(x => RenderTile(x, x.Position.X, x.Position.Y))))
+                Row(
+                    Text("\u2655", Styles.FontSize3, () => Promotion(new Queen(Game.Lastmove.target, PlayerColor, PieceValue.Queen, Game.Lastmove.target, true))),
+                    Text("\u2656", Styles.FontSize3, () => Promotion(new Rook(Game.Lastmove.target, PlayerColor, PieceValue.Rook, Game.Lastmove.target, true))),
+                    Text("\u2657", Styles.FontSize3, () => Promotion(new Bishop(Game.Lastmove.target, PlayerColor, PieceValue.Bishop, Game.Lastmove.target, true))),
+                    Text("\u2658", Styles.FontSize3, () => Promotion(new Knight(Game.Lastmove.target, PlayerColor, PieceValue.Knight, Game.Lastmove.target, true)))
+                )
             );
         }
-
-        private void Select((int X, int Y) target)
+        private void Promotion(Piece piece)
         {
-            //promtotion
-            if (Game.IsPromotable && PlayerColor != Game.CurrentPlayerColor)
-            {
-                Selected = Gameboard.Board[Game.Lastmove.target];
-                Game.ReplacePiece(target, PromotionSelect[target.X].Move(target));
-                Selected = null;
-                Game.IsPromotable = false;
-                return;
-            }
+            Game.ReplacePiece(Game.Lastmove.target, piece);
+            Game.IsPromotable = false;
+            Selected = null;
+            Game.ActionsAfterPromotion(Game);
+        }
+
+
+        private void Select((int X, int Y) target, ChessBoard gameboard)
+        {
+            //TODO: accept challenge buttons are old
+
             //enable playing only for the current player
-            if (Game.CurrentPlayerColor == PieceColor.White && Game.PlayedByEngine.W == false && PlayerColor == PieceColor.White
+            if (!SelectMovePlanning && Game.CurrentPlayerColor == PieceColor.White && Game.PlayedByEngine.W == false && PlayerColor == PieceColor.White
                 || Game.CurrentPlayerColor == PieceColor.Black && Game.PlayedByEngine.B == false && PlayerColor == PieceColor.Black)
             {
                 //no selection -> select
-                if (Selected == null && Gameboard.Board[target] != null && Gameboard.Board[target].Color == Game.CurrentPlayerColor)
-                    Selected = Gameboard.Board[target];
+                if (Selected == null && gameboard.Board[target] != null && gameboard.Board[target].Color == Game.CurrentPlayerColor)
+                    Selected = gameboard.Board[target];
                 //deselect
-                else if (Selected == Gameboard.Board[target])
+                else if (Selected == gameboard.Board[target])
                     Selected = null;
                 //move piece
                 else if (Selected != null && Game.TryMove(Selected, target))
                 {
+                    if (Game.GetPreselectedMoves().Any())
+                        Game.TryPreselectedMove();
+
+                    if (Game.IsPromotable && AccountEntry.AutomaticPromotion)
+                        Promotion(new Queen(Selected.Position, PlayerColor, PieceValue.Queen, Selected.Position, true));
+
                     Selected = null;
                     //enginemove for PvE
-                    ThreadPool.QueueUserWorkItem(o =>
-                    {
-                        if (Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black)
-                            Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
-                        else if (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White)
-                            Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
-                    });
+                    if (!Game.IsPromotable)
+                        ThreadPool.QueueUserWorkItem(o =>
+                        {
+                            if (Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black)
+                                Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
+                            else if (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White)
+                                Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
+                        });
+                }
+            }
+            else if (SelectMovePlanning)
+            {
+                if (Selected == null && gameboard.Board[target] != null && gameboard.Board[target].Color == PlayerColor)
+                    Selected = gameboard.Board[target];
+                else if (Selected != null)
+                {
+                    if (PlayerColor == PieceColor.White)
+                        Game.WhitePlannedMoves.Add((Selected, target));
+                    else
+                        Game.BlackPlannedMoves.Add((Selected, target));
+                    Selected = null;
                 }
             }
         }

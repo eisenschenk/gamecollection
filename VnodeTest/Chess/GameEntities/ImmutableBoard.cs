@@ -45,6 +45,14 @@ namespace VnodeTest.Chess.GameEntities
             return new ImmutableBoard(pieces);
         }
 
+        public ImmutableBoard CopyCurrentBoard()
+        {
+            Piece[] pieces = new Piece[64];
+            Board.CopyTo(pieces, 0);
+
+            return new ImmutableBoard(pieces);
+        }
+
         public ImmutableBoard ReplacePiece((int X, int Y) target, Piece replacement)
         {
             Piece[] pieces = new Piece[64];

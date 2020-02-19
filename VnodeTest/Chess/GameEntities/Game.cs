@@ -38,6 +38,8 @@ namespace VnodeTest
         private DateTime LastClockUpdate;
         public readonly List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)> Moves = new List<(ChessBoard Board, (Piece start, (int x, int y) target) LastMove)>();
 
+        public readonly List<(Piece start, (int x, int y) target)> WhitePlannedMoves = new List<(Piece start, (int x, int y) target)>();
+        public readonly List<(Piece start, (int x, int y) target)> BlackPlannedMoves = new List<(Piece start, (int x, int y) target)>();
 
         public Game(GameID id, Gamemode gamemode, ChessBoard gameboard, double playerClockTime, ChessgameProjection chessgameProjection)
         {
@@ -69,6 +71,21 @@ namespace VnodeTest
             var start = ParseStringToInt(input[0].ToString(), input[1].ToString());
             var target = ParseStringToInt(input[2].ToString(), input[3].ToString());
             return (start, target);
+        }
+
+        public bool TryPreselectedMove()
+        {
+            var preselectedMoves = GetPreselectedMoves().ToArray();
+            GetPreselectedMoves().RemoveAt(0);
+            if (!TryMove(preselectedMoves[0].start, preselectedMoves[0].target))
+            {
+                GetPreselectedMoves().Clear();
+                //var currentmoves = CurrentPlayerPlannedMoves.ToArray();
+                //CurrentPlayerPlannedMoves.RemoveAt(0);
+                //ActionsAfterMoveSuccess(currentmoves[0].start, this);
+                //return true;
+            }
+            return false;
         }
 
         public void TryEngineMove(string engineMove, (bool, bool) engineControlled = default)
@@ -215,11 +232,26 @@ namespace VnodeTest
         public void ActionsAfterMoveSuccess(Piece target, Game game = null, (bool, bool) engineControlled = default)
         {
             TryEnablePromotion(target, engineControlled);
+            if (!IsPromotable)
+                ActionsAfterPromotion(game);
+        }
+
+        public void ActionsAfterPromotion(Game game)
+        {
+
             game?.UpdateClocks(changeCurrentPlayer: true);
             if (CurrentPlayerColor == PieceColor.White)
                 MoveCounter++;
             if (CheckForGameOver())
                 Winner = InverseColor();
+            
+        }
+
+        public List<(Piece start, (int x, int y) target)> GetPreselectedMoves()
+        {
+            if (CurrentPlayerColor == PieceColor.White)
+                return WhitePlannedMoves;
+            return BlackPlannedMoves;
         }
 
         public bool CheckForGameOver()
@@ -257,7 +289,8 @@ namespace VnodeTest
                     if (clock <= TimeSpan.Zero)
                         Winner = color;
                 }
-
+                if (Winner != default)
+                    return;
                 updateColor(PieceColor.Black, ref _BlackClock);
                 updateColor(PieceColor.White, ref _WhiteClock);
                 LastClockUpdate = now;

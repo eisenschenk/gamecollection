@@ -48,7 +48,7 @@ namespace VnodeTest.General
         {
             return Div(
                 Div(
-                    Styles.TabNameTagNoWidth & Styles.FitContent,
+                    Styles.TabNameTagNoWidth & Styles.MinW25 & Styles.FitContent,
                     Text("Change Username", Styles.Fontcopperplate & Styles.Underline & Styles.MB2P5rem),
                     Row(
                         Text("Current Username:", Styles.W8C),
@@ -61,7 +61,7 @@ namespace VnodeTest.General
                     )
                 ),
                 Div(
-                    Styles.TabNameTagNoWidth & Styles.FitContent,
+                    Styles.TabNameTagNoWidth & Styles.MinW25 & Styles.FitContent,
                     Text("Change Icon", Styles.Fontcopperplate & Styles.Underline & Styles.MB2P5rem),
                     Row(
                         DropdownComponent<string>.Render(AccountProjection.GetIcons(), i => Icon = i, "Change Icon", i => Div(DOM.Icon(i, Styles.TCblack))),
@@ -74,7 +74,16 @@ namespace VnodeTest.General
 
         private VNode RenderGameSettings()
         {
-            return Text("random menu2");
+            //event for this i think
+            return Div(
+                Styles.TabNameTagNoWidth & Styles.MinW25 & Styles.FitContent,
+                Text("Chess Options:", Styles.Fontcopperplate & Styles.Underline & Styles.MB2P5rem),
+                Row(
+                    () => Account.Commands.ChangeAutomaticPromotion(AccountEntry.ID, AccountEntry.AutomaticPromotion),
+                    Text("Automatic Promotion"),
+                    DOM.Icon(AccountEntry.AutomaticPromotion ? "fas fa-toggle-on" : "fas fa-toggle-off", Styles.MX1 & Styles.TCToggle)
+                )
+            );
         }
 
         private VNode RenderSecuritySettings()
@@ -118,9 +127,9 @@ namespace VnodeTest.General
                             Text("Passwords are not the same!"),
                             Text("Ok", Styles.BtnSettings, () =>
                             {
-                                 WrongPasswords = false;
-                                 PasswordRepeat = string.Empty;
-                                 NewPassword = string.Empty;
+                                WrongPasswords = false;
+                                PasswordRepeat = string.Empty;
+                                NewPassword = string.Empty;
                             })
                         )
                         : null,

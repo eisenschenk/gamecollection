@@ -15,29 +15,28 @@ namespace VnodeTest.General
         private string Username;
         private string Password;
         public AccountEntry CurrentUser { get; set; }
-        private Rendermode CurrentRendermode = Rendermode.Default;
         private Func<VNode> CurrentContent;
 
 
         public LoginController(AccountProjection accountProjection)
         {
             AccountProjection = accountProjection;
+            CurrentContent = RenderLogin;
         }
 
         public VNode Render()
         {
             return Div(
+                Styles.LoginRegister,
                 RenderLoginRegisterSelection(),
-                Div(Styles.MainWindow, CurrentContent?.Invoke())
+                Div(CurrentContent?.Invoke())
             );
         }
         private VNode RenderLoginRegisterSelection()
         {
-            return Div(
-                Styles.Sidebar,
-                Text("Login & Register", Styles.MainMenuItem),
-                Text("Register Account", Styles.SubMenuItem, () => CurrentContent = RenderRegisterAccount),
-                Text("Login", Styles.SubMenuItem, () => CurrentContent = RenderLogin)
+            return Row(
+                Text("Register Account", CurrentContent == RenderRegisterAccount ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => CurrentContent = RenderRegisterAccount),
+                Text("Login", CurrentContent == RenderLogin ? Styles.TabMenuItemSelected : Styles.TabMenuItem, () => CurrentContent = RenderLogin)
             );
         }
 
@@ -48,7 +47,7 @@ namespace VnodeTest.General
                 return Text("Wrong Username/Password!", Styles.AbortBtn & Styles.MP4, () => CurrentContent = RenderLogin);
             }
             return Div(
-                Styles.BorderWhiteSolid & Styles.BCMain & Styles.FitContent & Styles.M2,
+                Styles.BorderWhiteSolid & Styles.BCMain & Styles.FitContent & Styles.MY2,
                 Input(Username, s => Username = s, Styles.MP2),
                 Input(Password, s => Password = s, Styles.MP2).WithPassword(),
                 Text("Login ", Styles.TabButton, () =>
@@ -73,7 +72,7 @@ namespace VnodeTest.General
                 return Text("Username taken!", Styles.AbortBtn & Styles.MP4, () => CurrentContent = RenderRegisterAccount);
             }
             return Div(
-                Styles.BorderWhiteSolid & Styles.BCMain & Styles.FitContent & Styles.M2,
+                Styles.BorderWhiteSolid & Styles.BCMain & Styles.FitContent & Styles.MY2,
                 Input(Username, s => Username = s, Styles.MP2),
                 Input(Password, s => Password = s, Styles.MP2).WithPassword(),
                 Text("Register Account", Styles.TabButton, () =>
@@ -90,10 +89,9 @@ namespace VnodeTest.General
                         }
                         Username = string.Empty;
                         Password = string.Empty;
-                        CurrentRendermode = Rendermode.Default;
                     }
                     else
-                        CurrentRendermode = Rendermode.Register;
+                        CurrentContent = usernameTaken;
                 })
             );
         }

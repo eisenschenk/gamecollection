@@ -14,6 +14,7 @@ namespace VnodeTest.Chess.GameEntities
         public (int X, int Y) StartPosition { get; } //von color abh. 
         public bool HasMoved { get; }
         public (int X, int Y) Position { get; }
+        public bool IsPreselectedMove;
 
 
         public Piece((int X, int Y) position, PieceColor color, PieceValue pieceValue, (int X, int Y) startposition, bool hasmoved)

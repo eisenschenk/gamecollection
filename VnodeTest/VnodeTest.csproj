@@ -86,6 +86,7 @@
     <Compile Include="BC\Chess\Game\Event\UnwantedChallengesDeleted.cs" />
     <Compile Include="BC\General\Account\Account.cs" />
     <Compile Include="BC\General\Account\AccountProjection.cs" />
+    <Compile Include="BC\General\Account\Command\ChangeAutomaticPromotion.cs" />
     <Compile Include="BC\General\Account\Command\ChangeIcon.cs" />
     <Compile Include="BC\General\Account\Command\ChangePassword.cs" />
     <Compile Include="BC\General\Account\Command\ChangeUsername.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="BC\General\Account\Event\AccountLoggedIn.cs" />
     <Compile Include="BC\General\Account\Event\AccountLoggedOut.cs" />
     <Compile Include="BC\General\Account\Event\AccountRegistered.cs" />
+    <Compile Include="BC\General\Account\Event\AutomaticPromotionChanged.cs" />
     <Compile Include="BC\General\Account\Event\IconChanged.cs" />
     <Compile Include="BC\General\Account\Event\PasswordChanged.cs" />
     <Compile Include="BC\General\Account\Event\UsernameChanged.cs" />

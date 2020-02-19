@@ -35,6 +35,8 @@ namespace VnodeTest.BC.General.Account
                 MessageBus.Instance.Send(new ChangePassword(id, oldPassword, newPassword));
             public static void ChangeIcon(AccountID id, string newIcon) =>
                 MessageBus.Instance.Send(new ChangeIcon(id, newIcon));
+            public static void ChangeAutomaticPromotion(AccountID id, bool oldSetting) =>
+                MessageBus.Instance.Send(new ChangeAutomaticPromotion(id, oldSetting));
         }
 
         public IEnumerable<IEvent> On(RegisterAccount command)
@@ -65,6 +67,10 @@ namespace VnodeTest.BC.General.Account
         public IEnumerable<IEvent> On(ChangeIcon command)
         {
             yield return new IconChanged(command.ID, command.NewIcon);
+        }
+        public IEnumerable<IEvent> On(ChangeAutomaticPromotion command)
+        {
+            yield return new AutomaticPromotionChanged(command.ID, command.OldSetting);
         }
         public override void Apply(IEvent @event)
         {

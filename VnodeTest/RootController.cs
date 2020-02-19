@@ -72,7 +72,7 @@ namespace VnodeTest
 
             new SidebarMainItem("Account", "fas fa-user-circle"),
             new SidebarSubItem("Friends", "fas fa-user-friends", CurrentContent == FriendshipController.Render, () =>  CurrentContent = FriendshipController.Render),
-            new SidebarSubItem("Settigns", "fas fa-cog", CurrentContent == SettingsController.Render, () => CurrentContent = SettingsController.Render)
+            new SidebarSubItem("Settings", "fas fa-cog", CurrentContent == SettingsController.Render, () => CurrentContent = SettingsController.Render)
         };
 
         public VNode Render()
