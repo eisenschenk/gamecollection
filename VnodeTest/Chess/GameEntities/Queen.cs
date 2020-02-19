@@ -17,7 +17,7 @@ namespace VnodeTest.GameEntities
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
         {
-            return GetDiagonals(gameboard).Concat(GetStraightLines(gameboard));
+            return GetDiagonals(gameboard, true).Concat(GetStraightLines(gameboard, true));
         }
 
         //public override Piece Copy() => new Queen(Position, Color);

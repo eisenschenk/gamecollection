@@ -47,46 +47,82 @@ namespace VnodeTest.Chess.GameEntities
             };
         }
 
-        public IEnumerable<(int X, int Y)> GetDiagonals(ChessBoard chessboard, int distance = 7)
+        public IEnumerable<(int X, int Y)> GetDiagonals(ChessBoard chessboard, bool onlyValid, int distance = 7)
         {
             for (int directionX = -1; directionX < 2; directionX += 2)
                 for (int directionY = -1; directionY < 2; directionY += 2)
-                    foreach (var move in GetPotentialMoves((directionX, directionY), chessboard, distance))
+                    foreach (var move in GetPotentialMoves((directionX, directionY), chessboard, onlyValid, distance))
                         yield return move;
         }
 
-        public IEnumerable<(int X, int Y)> GetStraightLines(ChessBoard gameboard, int distance = 7)
+        public IEnumerable<(int X, int Y)> GetStraightLines(ChessBoard gameboard, bool onlyValid, int distance = 7)
         {
             var result = Enumerable.Empty<(int, int)>();
             for (int i = -1; i < 2; i += 2)
                 result = result
-                    .Concat(GetPotentialMoves((i, 0), gameboard, distance))
-                    .Concat(GetPotentialMoves((0, i), gameboard, distance));
+                    .Concat(GetPotentialMoves((i, 0), gameboard, onlyValid, distance))
+                    .Concat(GetPotentialMoves((0, i), gameboard, onlyValid, distance));
             return result;
         }
 
-        private IEnumerable<(int X, int Y)> GetPotentialMoves((int X, int Y) direction, ChessBoard chessboard, int distance = 7)
+        private IEnumerable<(int X, int Y)> GetPotentialMoves((int X, int Y) direction, ChessBoard chessboard, bool onlyValid, int distance = 7)
         {
             var currentTarget = (X: Position.X + direction.X, Y: Position.Y + direction.Y);
             //distance enables the use of this method for all piecetypes and is a limitation to the allowed movement 
             while (distance > 0 && currentTarget.X < 8 && currentTarget.X >= 0 && currentTarget.Y < 8 && currentTarget.Y >= 0)
             {
-                var notNull = chessboard[currentTarget] != null;
-                var currentTargetColor = chessboard[currentTarget]?.Color;
-                //cant capture friendly pieces
-                if (notNull && currentTargetColor == Color)
-                    yield break;
-                //returns current targetposition which is either empty or an enemy piece
+                if (onlyValid)
+                {
+                    var notNull = chessboard[currentTarget] != null;
+                    var currentTargetColor = chessboard[currentTarget]?.Color;
+                    //cant capture friendly pieces
+                    if (notNull && currentTargetColor == Color)
+                        yield break;
+                    //returns current targetposition which is either empty or an enemy piece
+                    yield return currentTarget;
+                    //breaks after 1 enemy has been potentially captured
+                    if (notNull && currentTargetColor != Color)
+                        yield break;
+                }
                 yield return currentTarget;
-                //breaks after 1 enemy has been potentially captured
-                if (notNull && currentTargetColor != Color)
-                    yield break;
-
                 currentTarget.X += direction.X;
                 currentTarget.Y += direction.Y;
                 distance--;
             }
         }
+
+        public IEnumerable<(int X, int Y)> GetAllowedMovements()
+        {
+
+            (int distanceStraight, int distanceDiagonal) distance = default;
+
+            if (this is Knight knight)
+            {
+                return knight.GetMoves();
+            }
+            if (this is Pawn)
+            {
+                int possibleMove = (StartPosition == Position) ? 2 : 1;
+                bool filterY(int y, int positionY) => Color == PieceColor.White ? y > positionY : y < positionY;
+                return GetStraightLines(default, false, possibleMove).Where(p => p.X == Position.X && filterY(p.Y, Position.Y)).Concat(GetDiagonals(default, false, 1).Where(p => filterY(p.Y, Position.Y)));
+            }
+            else
+            {
+
+                distance = Value switch
+                {
+                    PieceValue.Bishop => (0, 7),
+                    PieceValue.King => (2, 1),
+                    PieceValue.Queen => (7, 7),
+                    PieceValue.Rook => (7, 0),
+                };
+                return GetStraightLines(default, false, distance.distanceStraight).Concat(GetDiagonals(default, false, distance.distanceDiagonal));
+            }
+        }
+
+
+
+
         public IEnumerable<(int X, int Y)> GetValidMovements(ChessBoard gameboard)
         {
             return GetPotentialMovements(gameboard).Where(m =>

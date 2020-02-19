@@ -143,9 +143,7 @@ namespace VnodeTest.Chess
             {
                 if (SelectedPreviousMove.Board != null)
                     return GetBoardVNode(SelectedPreviousMove.Board, SelectedPreviousMove.LastMove);
-                if (SelectMovePlanning)
-                    return GetBoardVNode(GetMovePlanningBoard(), Game.Lastmove);
-                return GetBoardVNode(Gameboard, Game.Lastmove);
+                return GetBoardVNode(GetMovePlanningBoard(), Game.Lastmove);
             }
             return Div(
                 //top of the gameboard
@@ -332,7 +330,7 @@ namespace VnodeTest.Chess
             //TODO: accept challenge buttons are old
 
             //enable playing only for the current player
-            if (!SelectMovePlanning && Game.CurrentPlayerColor == PieceColor.White && Game.PlayedByEngine.W == false && PlayerColor == PieceColor.White
+            if (Game.CurrentPlayerColor == PieceColor.White && Game.PlayedByEngine.W == false && PlayerColor == PieceColor.White
                 || Game.CurrentPlayerColor == PieceColor.Black && Game.PlayedByEngine.B == false && PlayerColor == PieceColor.Black)
             {
                 //no selection -> select
@@ -361,11 +359,13 @@ namespace VnodeTest.Chess
                         });
                 }
             }
-            else if (SelectMovePlanning)
+            else if (Game.CurrentPlayerColor != PlayerColor)
             {
                 if (Selected == null && gameboard.Board[target] != null && gameboard.Board[target].Color == PlayerColor)
                     Selected = gameboard.Board[target];
-                else if (Selected != null)
+                else if (Selected == gameboard.Board[target])
+                    Selected = null;
+                else if (Selected != null && Selected.GetAllowedMovements().Contains(target))
                 {
                     if (PlayerColor == PieceColor.White)
                         Game.WhitePlannedMoves.Add((Selected, target));

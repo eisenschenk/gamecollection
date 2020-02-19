@@ -17,7 +17,7 @@ namespace VnodeTest.GameEntities
 
         protected override IEnumerable<(int X, int Y)> GetPotentialMovements(ChessBoard gameboard)
         {
-            return GetDiagonals(gameboard);
+            return GetDiagonals(gameboard, true);
         }
 
         // public override Piece Copy() => new Bishop(Position, Color);

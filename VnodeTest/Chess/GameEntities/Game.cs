@@ -80,10 +80,6 @@ namespace VnodeTest
             if (!TryMove(preselectedMoves[0].start, preselectedMoves[0].target))
             {
                 GetPreselectedMoves().Clear();
-                //var currentmoves = CurrentPlayerPlannedMoves.ToArray();
-                //CurrentPlayerPlannedMoves.RemoveAt(0);
-                //ActionsAfterMoveSuccess(currentmoves[0].start, this);
-                //return true;
             }
             return false;
         }
@@ -113,6 +109,8 @@ namespace VnodeTest
 
         public bool TryMove(Piece start, (int X, int Y) target, (bool, bool) engineControlled = default)
         {
+            if (ChessBoard[start.Position] == null)
+                return false;
             if (ChessBoard.TryMove(start, target, out var newBoard, this, engineControlled))
             {
                 Moves.Add((newBoard, Lastmove));
@@ -244,7 +242,7 @@ namespace VnodeTest
                 MoveCounter++;
             if (CheckForGameOver())
                 Winner = InverseColor();
-            
+
         }
 
         public List<(Piece start, (int x, int y) target)> GetPreselectedMoves()

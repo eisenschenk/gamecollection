@@ -23,8 +23,8 @@ namespace VnodeTest.GameEntities
             bool filterY(int y, int positionY) => Color == PieceColor.White ? y > positionY : y < positionY;
 
             //preventing movement to the left/right, movement straight blocked by any piece, capturing only diagonal including enpassant
-            var returnValues = GetStraightLines(gameboard, possibleMove).Where(p => p.X == Position.X && gameboard[p] == null);
-            return returnValues.Concat(GetDiagonals(gameboard, 1).Where(p => filterY(p.Y, Position.Y) && enemyPiece(p) || p == gameboard.EnPassantTarget));
+            var returnValues = GetStraightLines(gameboard, true, possibleMove).Where(p => p.X == Position.X && filterY(p.Y, Position.Y) && gameboard[p] == null);
+            return returnValues.Concat(GetDiagonals(gameboard, true, 1).Where(p => filterY(p.Y, Position.Y) && enemyPiece(p) || p == gameboard.EnPassantTarget));
 
         }
     }
