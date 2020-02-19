@@ -587,6 +587,10 @@ namespace VnodeTest
                 BackgroundColor("red")
             ),
 
+              Def(BCyellow,
+                BackgroundColor("gold")
+            ),
+
               Def(BCMain,
                 BackgroundColor("cadetblue")
             ),
@@ -633,6 +637,7 @@ namespace VnodeTest
         public static readonly Style BCMenu;
         public static readonly Style BCMain;
         public static readonly Style BCred;
+        public static readonly Style BCyellow;
         public static readonly Style TCblack;
         public static readonly Style TCred;
         public static readonly Style TCwhite;

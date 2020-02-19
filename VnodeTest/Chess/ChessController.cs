@@ -209,13 +209,14 @@ namespace VnodeTest.Chess
         {
             var target = (col, row);
             Style lastMove = null;
+            Style premove = GetPremoveColor(piece, target);
             //set style for lastmove
             if (lastmove.start != null
                 && (target == lastmove.start.Position || target == lastmove.target) && !Game.IsPromotable)
                 lastMove = Styles.BCred;
             if (SelectedPreviousMove.Board == null)
                 return Div(
-                    GetBaseStyle(target) & GetSelectedStyle(target) & lastMove,
+                    GetBaseStyle(target) & GetSelectedStyle(target) & lastMove & premove,
                     () => Select(target, gameboard),
                     piece != null
                         ? Text(GetSprite(piece), Styles.FontSize3 & Styles.TextAlignC)
@@ -226,6 +227,14 @@ namespace VnodeTest.Chess
                     GetBaseStyle(target) & GetBorderStyle(target) & lastMove,
                     piece != null ? Text(GetSprite(piece), Styles.FontSize3 & Styles.TextAlignC) : null
                 );
+        }
+
+        private Style GetPremoveColor(Piece piece, (int X, int Y) target)
+        {
+            if ((PlayerColor == PieceColor.White && Game.WhitePlannedMoves.Where(i => i.target == target || i.start.Position == target).Any())
+                || (PlayerColor == PieceColor.Black && Game.BlackPlannedMoves.Where(i => i.target == target || i.start.Position == target).Any()))
+                return Styles.BCyellow;
+            return null;
         }
 
         private Style GetSelectedStyle((int X, int Y) position)
@@ -340,7 +349,6 @@ namespace VnodeTest.Chess
 
                     if (Game.IsPromotable && AccountEntry.AutomaticPromotion)
                         Promotion(new Queen(Selected.Position, PlayerColor, PieceValue.Queen, Selected.Position, true));
-
                     Selected = null;
                     //enginemove for PvE
                     if (!Game.IsPromotable)
