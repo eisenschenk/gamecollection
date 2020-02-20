@@ -23,18 +23,18 @@ namespace VnodeTest.BC.Chess.Game
 
         public ChessgameProjection(IEventStore store, IMessageBus bus) : base(store, bus)
         {
-        }
-
-        public void CloseGamesAfterChallengeExpires()
-        {
             ThreadPool.QueueUserWorkItem(o =>
             {
                 while (true)
+                {
                     foreach (GameEntry entry in Games.ToArray())
                         if (!entry.GameWasFullOnce && entry.Created.AddSeconds(entry.Timer) < DateTime.Now)
                             Chessgame.Commands.DeleteGame(entry.ID);
+                    Thread.Sleep(1000);
+                }
             });
         }
+
 #pragma warning disable IDE0051
         private void On(GameOpened @event)
         {

@@ -158,16 +158,27 @@ namespace VnodeTest.Chess
                 Row(
                     Div(Styles.BorderChessBoard, board()),
                     Div(
-                        Text("Preselect Moves", SelectMovePlanning ? Styles.TabButtonSelected : Styles.TabButton, () => SelectMovePlanning = !SelectMovePlanning),
                         Text("Last Moves:", Styles.TabNameTag),
                         RenderPreviousMoves()
                     )
                 ),
                 //below gameboard
+                Row(
+                    Text("Cancel Premoves", Styles.TabButtonSelected, PlayerColor == PieceColor.White ? (Action)Game.WhitePlannedMoves.Clear : Game.BlackPlannedMoves.Clear),
+                    Text("Delete Last Premove", Styles.TabButtonSelected & Styles.FitContent, RemoveEntry)
+                ),
                 Game.GameOver ? RenderGameOver() : null
             );
         }
 
+        private void RemoveEntry()
+        {
+            if (PlayerColor == PieceColor.White)
+                Game.WhitePlannedMoves.Remove(Game.WhitePlannedMoves.Last());
+
+            else
+                Game.BlackPlannedMoves.Remove(Game.BlackPlannedMoves.Last());
+        }
 
         private string Allmoves()
         {
@@ -289,8 +300,6 @@ namespace VnodeTest.Chess
             };
         }
 
-        //TODO pause not working @chess
-
         private VNode RenderGameOver()
         {
             string winner;
@@ -327,8 +336,6 @@ namespace VnodeTest.Chess
 
         private void Select((int X, int Y) target, ChessBoard gameboard)
         {
-            //TODO: accept challenge buttons are old
-
             //enable playing only for the current player
             if (Game.CurrentPlayerColor == PieceColor.White && Game.PlayedByEngine.W == false && PlayerColor == PieceColor.White
                 || Game.CurrentPlayerColor == PieceColor.Black && Game.PlayedByEngine.B == false && PlayerColor == PieceColor.Black)
@@ -352,10 +359,17 @@ namespace VnodeTest.Chess
                     if (!Game.IsPromotable)
                         ThreadPool.QueueUserWorkItem(o =>
                         {
-                            if (Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black)
-                                Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
-                            else if (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White)
-                                Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
+                            do
+                            {
+                                if (Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black)
+                                    Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
+                                else if (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White)
+                                    Game.TryEngineMove(Game.Enginemove = Game.Engine.GetEngineMove(Game.GetFeNotation()));
+
+                                if (Game.GetPreselectedMoves().Any())
+                                    Game.TryPreselectedMove();
+
+                            } while ((Game.PlayedByEngine.B && Game.CurrentPlayerColor == PieceColor.Black) || (Game.PlayedByEngine.W && Game.CurrentPlayerColor == PieceColor.White));
                         });
                 }
             }

@@ -15,7 +15,6 @@ using AccountID = ACL.ES.AggregateID<VnodeTest.BC.General.Account.Account>;
 
 namespace VnodeTest.Solitaire
 {
-    //TODO: resume game deosnt give last game after restarting the engine
     public partial class SolitaireController
     {
         private GameID GameID /*=> LastPlayedgame == default ? SolitaireProjection.GetGameID(AccountID) : LastPlayedgame*/;

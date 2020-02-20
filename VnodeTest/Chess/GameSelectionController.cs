@@ -96,8 +96,6 @@ namespace VnodeTest.Chess
             var gID = GameID.Create();
             Chessgame.Commands.OpenGame(gID, GameSelection.Mode, GetClocktimer());
             Chessgame.Commands.JoinGame(gID, AccountEntry.ID);
-            //TODO here?
-            //SidebarModule.CurrentContent = SidebarModule.ChessController.Render;
             Game.Engine = new EngineControl();
             //EvE loop
             if (GameSelection.Mode == Gamemode.EvE)
@@ -117,12 +115,12 @@ namespace VnodeTest.Chess
         private VNode RenderChallenges(IEnumerable<GameEntry> challenges)
         {
             return Div(
-                Text("Chess Challenges:"),
+                Text("Chess Challenges:", Styles.TabNameTag & Styles.FitContent),
                 Fragment(challenges.Select(c =>
                       Row(
-                          Text(AccountProjection[c.Challenger].Username),
-                          Text("Accept", Styles.Btn & Styles.MP4, () => Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver)),
-                          Text("Deny", Styles.Btn & Styles.MP4, () => Chessgame.Commands.DenyChallenge(c.ID))
+                          Text(AccountProjection[c.Challenger].Username, Styles.TabNameTag),
+                          Text("Accept", Styles.TabButton & Styles.MP4, () => Chessgame.Commands.AcceptChallenge(c.ID, c.Challenger, c.Receiver)),
+                          Text("Deny", Styles.TabButtonSelected & Styles.MP4, () => Chessgame.Commands.DenyChallenge(c.ID))
                       )
                 )));
         }
@@ -137,16 +135,24 @@ namespace VnodeTest.Chess
                 if (friendChallenged != default)
                     return GameProjection[friendChallenged.ID].HasOpenSpots && friendChallenged.Created.AddSeconds(friendChallenged.Timer) > DateTime.Now
                         ? Row(
-                            Text($"placeholder - {friendChallenged.Timer - friendChallenged.Elapsed.Seconds}", Styles.TabNameTag),
+                            Row(
+                                Styles.TabNameTag,
+                                DOM.Icon(AccountProjection[friendChallenged.Receiver].Icon, Styles.MX1),
+                                Text($"{AccountProjection[friendChallenged.Receiver].Username} - {friendChallenged.Timer - friendChallenged.Elapsed.Seconds}")
+                            ),
                             Text("Abort Challenge!", Styles.TabButtonSelected, () => Chessgame.Commands.DenyChallenge(friendChallenged.ID))
                         )
                         : null;
 
                 //render challenge friend option
                 return Row(
-                            Text(friend.Username, Styles.TabNameTag),
-                            Text("Challenge", Styles.TabMenuItem, () => challengeFriend(friend))
-                        );
+                    Row(
+                        Styles.TabNameTag,
+                        DOM.Icon(friend.Icon, Styles.MX1),
+                        Text(friend.Username)
+                    ),
+                    Text("Challenge", Styles.TabMenuItem, () => challengeFriend(friend))
+                );
             }
 
             void challengeFriend(AccountEntry friend)
